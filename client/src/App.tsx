@@ -99,11 +99,11 @@ function AppInner() {
         {loading ? (
           <div className="grid grid-cols-3 gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-secondary)]/30 p-3 min-h-[240px] animate-pulse">
-                <div className="h-4 w-12 bg-[var(--border-color)]/30 rounded mb-3" />
+              <div key={i} className="rounded-xl border border-(--border-color) bg-(--bg-secondary)/30 p-3 min-h-60 animate-pulse">
+                <div className="h-4 w-12 bg-(--border-color)/30 rounded mb-3" />
                 <div className="flex gap-2">
                   {[1, 2].map(j => (
-                    <div key={j} className="w-[180px] h-[220px] bg-[var(--border-color)]/20 rounded-sm" />
+                    <div key={j} className="w-45 h-55 bg-(--border-color)/20 rounded-sm" />
                   ))}
                 </div>
               </div>

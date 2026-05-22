@@ -16,13 +16,13 @@ export default function WeekHeader({
   onPrevWeek, onNextWeek, onCurrentWeek, onToggleDark,
 }: WeekHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 bg-[var(--bg-primary)]/90 backdrop-blur-md border-b border-[var(--border-color)]">
+    <header className="sticky top-0 z-30 bg-(--bg-primary)/90 backdrop-blur-md border-b border-(--border-color)">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl text-hand text-[var(--accent)] font-bold select-none">
+          <h1 className="text-2xl text-hand text-(--accent) font-bold select-none">
             TermSpark
           </h1>
-          <span className="text-xs text-[var(--text-muted)] px-2 py-0.5 rounded-full border border-[var(--border-color)]">
+          <span className="text-xs text-(--text-muted) px-2 py-0.5 rounded-full border border-(--border-color)">
             beta
           </span>
         </div>
@@ -34,12 +34,12 @@ export default function WeekHeader({
 
           <button
             onClick={onCurrentWeek}
-            className="flex flex-col items-center px-4 py-1 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
+            className="flex flex-col items-center px-4 py-1 rounded-lg hover:bg-(--bg-secondary) transition-colors"
           >
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
+            <span className="text-sm font-semibold text-(--text-primary)">
               第 {weekNumber} 周
             </span>
-            <span className="text-xs text-[var(--text-muted)]">
+            <span className="text-xs text-(--text-muted)">
               {dateRange}
             </span>
           </button>

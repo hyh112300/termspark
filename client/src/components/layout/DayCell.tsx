@@ -34,13 +34,13 @@ export default function DayCell({
 
   return (
     <div className={cn(
-      'flex flex-col rounded-xl border border-[var(--border-color)] bg-[var(--bg-secondary)]/50 p-3 min-h-[240px]',
+      'flex flex-col rounded-xl border border-(--border-color) bg-(--bg-secondary)/50 p-3 min-h-60',
       className
     )}>
       {/* Day header */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-sm font-semibold text-[var(--text-primary)]">{dayName}</span>
-        <span className="text-xs text-[var(--text-muted)]">
+        <span className="text-sm font-semibold text-(--text-primary)">{dayName}</span>
+        <span className="text-xs text-(--text-muted)">
           {images.length > 0 && `${images.length} 张卡片`}
         </span>
       </div>

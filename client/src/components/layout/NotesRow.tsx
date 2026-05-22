@@ -57,7 +57,7 @@ export default function NotesRow({ initialContent, onSave, saving }: NotesRowPro
   return (
     <motion.div
       layout
-      className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-secondary)]/50 overflow-hidden"
+      className="rounded-xl border border-(--border-color) bg-(--bg-secondary)/50 overflow-hidden"
       style={{ height }}
     >
       {/* Drag handle */}
@@ -65,13 +65,13 @@ export default function NotesRow({ initialContent, onSave, saving }: NotesRowPro
         className="resize-handle flex items-center justify-center cursor-row-resize select-none"
         onMouseDown={handleMouseDown}
       >
-        <GripHorizontal className="w-4 h-4 text-[var(--text-muted)]" />
+        <GripHorizontal className="w-4 h-4 text-(--text-muted)" />
       </div>
 
       <div className="flex items-center gap-2 px-4 pt-1">
-        <span className="text-sm font-semibold text-[var(--text-primary)]">笔记</span>
+        <span className="text-sm font-semibold text-(--text-primary)">笔记</span>
         {saving && (
-          <span className="text-xs text-[var(--text-muted)] animate-pulse">保存中...</span>
+          <span className="text-xs text-(--text-muted) animate-pulse">保存中...</span>
         )}
       </div>
 
@@ -80,7 +80,7 @@ export default function NotesRow({ initialContent, onSave, saving }: NotesRowPro
         onChange={(e) => handleChange(e.target.value)}
         placeholder="记点东西..."
         className="w-full h-[calc(100%-40px)] px-4 py-2 bg-transparent resize-none text-sm
-          text-[var(--text-primary)] placeholder-[var(--text-muted)]/50
+          text-(--text-primary) placeholder-(--text-muted)/50
           focus:outline-none text-hand leading-relaxed"
       />
     </motion.div>
