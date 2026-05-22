@@ -245,34 +245,225 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════
-   🖼 Image card (new horizontal style)
+   🖼 Image card — 3D flip card
    ═══════════════════════════════════════════════════ */
-.img-card-horizontal {
-  display: flex;
-  gap: 16px;
-  padding: 12px;
+
+/* ── 3D perspective container ── */
+.flip-card {
+  perspective: 800px;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+}
+
+/* ── Inner rotator ── */
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  border-radius: 14px;
+}
+
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+/* ── Common face styles ── */
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* ── Front face ── */
+.flip-card-front {
   background: var(--bg-elevated);
   backdrop-filter: blur(12px) saturate(1.2);
   -webkit-backdrop-filter: blur(12px) saturate(1.2);
   border: 0.5px solid var(--border);
-  border-radius: 12px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.img-card-horizontal:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
 }
 
-/* ═══════════════════════════════════════════════════
-   💠 Pastel decoration (simplified)
-   ═══════════════════════════════════════════════════ */
-.pastel-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+.flip-card-front img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.flip-card:hover .flip-card-front img {
+  transform: scale(1.05);
+}
+
+/* ── Front gradient overlay ── */
+.flip-card-front-overlay {
   position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%);
   pointer-events: none;
-  opacity: 0.5;
+}
+
+/* ── Glass badge (filename on front) ── */
+.flip-card-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.flip-card-badge-text {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.92);
+  background: rgba(0,0,0,0.30);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Back face — rotating glow border ── */
+.flip-card-back {
+  transform: rotateY(180deg);
+  background: #151515;
+  border-radius: 14px;
+}
+
+/* Rotating gradient ring (on back face border) */
+.flip-card-back::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  z-index: 0;
+  border-radius: 15px;
+  background: conic-gradient(
+    transparent 0deg,
+    var(--accent) 60deg,
+    var(--pastel-blue) 120deg,
+    var(--pastel-pink) 180deg,
+    var(--pastel-green) 240deg,
+    var(--pastel-yellow) 300deg,
+    transparent 360deg
+  );
+  animation: flip-glow-spin 3s linear infinite;
+}
+
+.dark .flip-card-back::before {
+  opacity: 0.7;
+}
+
+@keyframes flip-glow-spin {
+  to { rotate: 360deg; }
+}
+
+/* Inner content mask for back face */
+.flip-card-back-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 13px;
+  margin: 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  background: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+/* Back face decorative blur circles */
+.flip-card-blur-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(24px);
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Back face title */
+.flip-card-back-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+/* Image count on front */
+.flip-card-count {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  padding: 1px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Actions on front hover */
+.flip-card-actions {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(0,0,0,0.15);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.flip-card:hover .flip-card-actions {
+  opacity: 1;
+}
+
+.flip-card-action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.flip-card-action-btn:hover {
+  scale: 1.1;
+}
+
+.flip-card-action-btn.regenerate:hover {
+  color: var(--accent);
+}
+
+.flip-card-action-btn.delete:hover {
+  color: #ff4444;
 }
 
 /* ═══════════════════════════════════════════════════

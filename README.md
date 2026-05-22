@@ -1,6 +1,6 @@
 # TermSpark —— 设计术语灵感剪切板
 
-一个按周组织的手账式设计术语灵感管理工具。粘贴设计截图，AI 自动生成设计术语关键词，所有内容按周历排列和储存。
+一个搜集设计灵感的时间线工具。粘贴设计截图，AI 自动生成设计术语关键词，所有内容按时间线排列。
 
 ## 技术栈
 
@@ -13,12 +13,14 @@
 
 ## 功能概览
 
-- **周视图手账布局** — 三行结构：周一~周三 / 周四~周五+周末 / 全宽笔记区（高度可拖拽调整）
-- **宝丽来卡片** — 拍立得风格，随机装饰（和纸胶带 / 图钉 / 回形针）
-- **AI 术语生成** — 上传截图后自动调用本地 oMLX 模型，生成 5-10 个设计术语关键词
-- **术语标签** — 点击复制到剪贴板，悬停可删除，+N 展开完整列表
-- **温暖琥珀色系** — 手写字体 (Caveat)，支持深色模式切换
-- **周历导航** — 切换上/下一周，显示当前周数与日期范围
+- **时间线布局** — 垂直时间线展示所有设计截图，无限滚动加载，支持双向翻页
+- **毛玻璃设计** — Apple 风格 frosted glass 设计系统（多级模糊层次）
+- **AI 术语生成** — 上传截图后自动调用本地 oMLX 模型，生成设计术语关键词
+- **术语标签** — 点击复制到剪贴板，悬停删除，hover 展开全部
+- **粘贴截图** — 任意位置 Ctrl+V / Cmd+V 快速上传
+- **搜索面板** — 全局搜索所有已生成的术语关键词
+- **浮动操作按钮** — 快速回到今天
+- **深色模式** — 完美适配 Light / Dark 模式
 
 ## 快速开始
 
@@ -27,7 +29,7 @@
 - Node.js >= 22
 - pnpm >= 10
 - PostgreSQL >= 15
-- oMLX（已加载 gemma-4-e4b-it-4bit 模型）
+- oMLX（已加载 gemma-4-e4b-it-8bit 模型）
 
 ### 1. 克隆项目
 
@@ -49,7 +51,8 @@ pnpm approve-builds  # 允许 sharp 等包的构建脚本
 ```env
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/termspark
 oMLX_URL=http://127.0.0.1:8000/v1
-oMLX_MODEL=gemma-4-e4b-it-4bit
+oMLX_MODEL=gemma-4-e4b-it-8bit
+oMLX_API_KEY=your_api_key_here
 PORT=3001
 ```
 
@@ -67,10 +70,7 @@ pnpm --filter server db:push
 
 ### 6. 启动 oMLX
 
-```bash
-# 启动 oMLX 服务（OpenAI 兼容 API 默认监听 127.0.0.1:8000）
-# 确保已加载 gemma-4-e4b-it-4bit 模型
-```
+确保 oMLX 服务已启动，OpenAI 兼容 API 默认监听 `127.0.0.1:8000`，模型 `gemma-4-e4b-it-8bit` 已加载。
 
 ### 7. 启动开发环境
 
@@ -91,11 +91,11 @@ pnpm dev:server     # 仅后端 → http://localhost:3001
 termspark/
 ├── client/src/
 │   ├── components/
-│   │   ├── layout/          # WeekHeader, WeekGrid, DayCell, NotesRow
-│   │   ├── cards/           # ImageCard (宝丽来), CardDecoration, ImageUploader
-│   │   ├── terminology/     # TermTag, TermList
-│   │   └── ui/              # Button, Tooltip, Dialog
-│   ├── hooks/               # useWeekNavigator, useApi
+│   │   ├── layout/          # AppHeader, TimelineFeed, DaySection, DayNote, SearchPanel, FloatingActionButton
+│   │   ├── cards/           # ImageCard, CardDecoration, ImageUploader
+│   │   ├── terminology/     # TermTag
+│   │   └── ui/              # Button, Dialog, Tooltip
+│   ├── hooks/               # useTimeline（时间线数据加载）
 │   ├── types/               # TypeScript 类型定义
 │   └── lib/                 # 工具函数
 ├── server/src/
@@ -110,12 +110,14 @@ termspark/
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | `POST` | `/api/images` | 上传图片，自动触发 AI 生成术语 |
-| `GET` | `/api/images?weekStart=YYYY-MM-DD` | 获取指定周的所有图片和术语 |
+| `GET` | `/api/images/timeline` | 时间线分页查询（双光标） |
+| `GET` | `/api/images/search?q=keyword` | 全局搜索术语关键词 |
+| `GET` | `/api/images?weekStart=YYYY-MM-DD` | 按周查询图片和术语 |
 | `DELETE` | `/api/images/:id` | 删除图片及关联术语 |
 | `POST` | `/api/images/:id/regenerate` | 重新生成术语 |
 | `DELETE` | `/api/terms/:id` | 删除单个术语 |
-| `GET` | `/api/notes?weekStart=YYYY-MM-DD` | 获取周笔记 |
-| `PUT` | `/api/notes` | 保存/更新周笔记 |
+| `GET` | `/api/notes?date=YYYY-MM-DD` | 获取某天笔记 |
+| `PUT` | `/api/notes` | 保存/更新笔记 |
 | `GET` | `/api/health` | 服务健康检查 |
 
 ## 配置说明
@@ -124,5 +126,7 @@ termspark/
 |---|---|---|
 | `DATABASE_URL` | `postgres://postgres:postgres@localhost:5432/termspark` | PostgreSQL 连接字符串 |
 | `oMLX_URL` | `http://127.0.0.1:8000/v1` | oMLX OpenAI 兼容 API 地址 |
-| `oMLX_MODEL` | `gemma-4-e4b-it-4bit` | 模型名称 |
+| `oMLX_MODEL` | `gemma-4-e4b-it-8bit` | 模型名称 |
+| `oMLX_API_KEY` | — | oMLX API 密钥 |
+| `UPLOADS_DIR` | `./uploads` | 上传文件存储路径 |
 | `PORT` | `3001` | 后端服务端口 |

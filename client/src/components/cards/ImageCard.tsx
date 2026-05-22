@@ -1,10 +1,16 @@
-import { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, RefreshCw } from 'lucide-react';
-import type { ImageRecord, TermRecord } from '@/types';
-import { copyToClipboard } from '@/lib/utils';
-import TermTag from '@/components/terminology/TermTag';
+import { useState, useCallback, useMemo } from 'react';
+import { Trash2, RefreshCw, Eye } from 'lucide-react';
+import type { ImageRecord } from '@/types';
 import Dialog from '@/components/ui/Dialog';
+import { copyToClipboard } from '@/lib/utils';
+
+/* ── Decorative blur circle configs for back face ── */
+const blurCircles = [
+  { size: 100, x: -10, y: -15, color: 'var(--pastel-pink)' },
+  { size: 70, x: 55, y: 30, color: 'var(--pastel-blue)' },
+  { size: 50, x: 20, y: 55, color: 'var(--pastel-green)' },
+  { size: 80, x: 65, y: -5, color: 'var(--pastel-yellow)' },
+];
 
 /* ── ImageCard ── */
 interface ImageCardProps {
@@ -17,87 +23,123 @@ interface ImageCardProps {
 export default function ImageCard({ image, onDelete, onDeleteTerm, onRegenerate }: ImageCardProps) {
   const [showPreview, setShowPreview] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [hovered, setHovered] = useState(false);
 
   const handleDelete = useCallback(() => onDelete(image.id), [image.id, onDelete]);
   const handleRegenerate = useCallback(() => onRegenerate(image.id), [image.id, onRegenerate]);
 
-  const showCount = hovered ? image.terms.length : 3;
-  const termsToShow = image.terms.slice(0, showCount);
-  const remaining = image.terms.length - showCount;
+  /* Stable random offset for blur circles per image instance */
+  const circleOffsets = useMemo(() =>
+    blurCircles.map(c => ({
+      ...c,
+      x: c.x + (image.id * 7 % 25),
+      y: c.y + (image.id * 13 % 25),
+    })),
+  [image.id]);
 
   return (
     <>
-      <div
-        className="img-card-horizontal group relative"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        {/* Image thumbnail */}
-        <div
-          className="relative w-24 sm:w-28 aspect-4/3 shrink-0 rounded-lg overflow-hidden cursor-pointer bg-[var(--bg-base)]"
-          onClick={() => setShowPreview(true)}
-        >
-          {!imgLoaded && <div className="absolute inset-0 skeleton" />}
-          <img
-            src={`/uploads/${image.filename}`}
-            alt={image.originalName}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
-            loading="lazy"
-            onLoad={() => setImgLoaded(true)}
-          />
+      <div className="flip-card group">
+        <div className="flip-card-inner">
+          {/* ═══ Front: Image ═══ */}
+          <div className="flip-card-front">
+            {/* Image */}
+            {!imgLoaded && <div className="absolute inset-0 skeleton" />}
+            <img
+              src={`/uploads/${image.filename}`}
+              alt={image.originalName}
+              className={`transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+              loading="lazy"
+              onLoad={() => setImgLoaded(true)}
+              onClick={() => setShowPreview(true)}
+            />
 
-          {/* Action buttons on hover */}
-          <AnimatePresence>
-            {hovered && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-black/20 flex items-center justify-center gap-2"
+            {/* Gradient overlay */}
+            <div className="flip-card-front-overlay" />
+
+            {/* Glass badge — filename */}
+            <div className="flip-card-badge">
+              <span className="flip-card-badge-text">{image.originalName}</span>
+            </div>
+
+            {/* Actions on hover (front) */}
+            <div className="flip-card-actions">
+              <button
+                onClick={(e) => { e.stopPropagation(); handleRegenerate(); }}
+                className="flip-card-action-btn regenerate"
+                title="重新生成"
               >
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleRegenerate(); }}
-                  className="p-1.5 rounded-full bg-white/80 text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors shadow-sm"
-                  title="重新生成"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleDelete(); }}
-                  className="p-1.5 rounded-full bg-white/80 text-[var(--text-secondary)] hover:text-red-500 transition-colors shadow-sm"
-                  title="删除图片"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                <RefreshCw className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowPreview(true); }}
+                className="flip-card-action-btn"
+                title="预览大图"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+            </div>
 
-        {/* Info */}
-        <div className="flex-1 min-w-0 flex flex-col gap-2">
-          {/* File name */}
-          <p className="text-[13px] font-medium text-[var(--text-secondary)] truncate leading-tight">
-            {image.originalName}
-          </p>
+          </div>
 
-          {/* Term tags */}
-          <div className="flex flex-wrap gap-1.5">
-            <AnimatePresence>
-              {termsToShow.map(t => (
-                <TermTag
-                  key={t.id}
-                  term={t.term}
-                  onDelete={() => onDeleteTerm(t.id)}
+          {/* ═══ Back: Terms ═══ */}
+          <div className="flip-card-back">
+            {/* Rotating glow border — via ::before */}
+            <div className="flip-card-back-content">
+              {/* Blur circles decoration */}
+              {circleOffsets.map((c, i) => (
+                <div
+                  key={i}
+                  className="flip-card-blur-circle"
+                  style={{
+                    width: c.size,
+                    height: c.size,
+                    left: `${c.x}%`,
+                    top: `${c.y}%`,
+                    background: c.color,
+                  }}
                 />
               ))}
-            </AnimatePresence>
-            {!hovered && remaining > 0 && (
-              <span className="text-[11px] text-[var(--text-tertiary)] font-medium px-2 py-0.5 rounded-full bg-[var(--bg-hover)]">
-                +{remaining}
-              </span>
-            )}
+
+              {/* Delete button — top-right, always visible on back */}
+              <button
+                onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+                className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-white/10 hover:bg-red-500/30 flex items-center justify-center text-white/50 hover:text-red-300 transition-all"
+                title="删除图片"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+
+              {/* Title */}
+              <div className="relative z-1 text-[10px] font-semibold text-white/40 uppercase tracking-wider">
+                术语 · {image.terms.length}
+              </div>
+
+              {/* Terms — white compact pills, horizontal wrap */}
+              <div className="relative z-1 flex flex-wrap content-start gap-1.5">
+                {image.terms.map(t => (
+                  <span
+                    key={t.id}
+                    onClick={() => copyToClipboard(t.term)}
+                    className="group inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium leading-tight text-white/85 bg-white/12 cursor-pointer transition-all hover:bg-white/22 hover:scale-105 active:scale-95 select-none shrink-0"
+                    title="点击复制"
+                  >
+                    {t.term}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onDeleteTerm(t.id); }}
+                      className="opacity-0 group-hover:opacity-40 hover:!opacity-100 transition-opacity shrink-0"
+                      title="删除"
+                    >
+                      <svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <path d="M2 2l6 6M8 2l-6 6" />
+                      </svg>
+                    </button>
+                  </span>
+                ))}
+                {image.terms.length === 0 && (
+                  <span className="text-white/25 text-sm mt-2">暂无术语</span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -38,8 +38,6 @@ function AppInner() {
     deleteImage,
     deleteTerm,
     regenerateTerms,
-    saveNote,
-    noteSaving,
   } = useTimeline();
 
   // Toggle dark mode
@@ -132,14 +130,6 @@ function AppInner() {
     }
   }, [regenerateTerms]);
 
-  const handleSaveNote = useCallback(async (date: string, content: string) => {
-    try {
-      await saveNote(date, content);
-    } catch (err: any) {
-      toast.error(`保存失败: ${err.message}`);
-    }
-  }, [saveNote]);
-
   return (
     <div className="min-h-screen flex flex-col" ref={timelineRef}>
       <AppHeader
@@ -166,13 +156,10 @@ function AppInner() {
                 displayDate={day.displayDate}
                 isToday={day.isToday}
                 images={day.images}
-                note={day.note}
                 onUpload={(file) => handleUpload(day.date, file)}
                 onDeleteImage={handleDeleteImage}
                 onDeleteTerm={handleDeleteTerm}
                 onRegenerate={handleRegenerate}
-                onSaveNote={(content) => handleSaveNote(day.date, content)}
-                noteSaving={noteSaving}
                 uploading={!!uploadingStates[day.date]}
               />
             </div>

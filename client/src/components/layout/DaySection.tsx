@@ -1,12 +1,9 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { ImageRecord, NoteRecord, DecorationStyle } from '@/types';
+import type { ImageRecord } from '@/types';
 import ImageCard from '@/components/cards/ImageCard';
 import ImageUploader from '@/components/cards/ImageUploader';
-import CardDecoration from '@/components/cards/CardDecoration';
 import DateMarker from './DateMarker';
-import DayNote from './DayNote';
-import { randomDecoration } from '@/lib/utils';
 
 interface DaySectionProps {
   date: string;
@@ -14,13 +11,10 @@ interface DaySectionProps {
   displayDate: string;
   isToday: boolean;
   images: ImageRecord[];
-  note: NoteRecord | null;
   onUpload: (file: File) => Promise<void>;
   onDeleteImage: (id: number) => void;
   onDeleteTerm: (termId: number) => void;
   onRegenerate: (imageId: number) => void;
-  onSaveNote: (content: string) => Promise<void>;
-  noteSaving: boolean;
   uploading: boolean;
 }
 
@@ -30,17 +24,13 @@ export default function DaySection({
   displayDate,
   isToday,
   images,
-  note,
   onUpload,
   onDeleteImage,
   onDeleteTerm,
   onRegenerate,
-  onSaveNote,
-  noteSaving,
   uploading,
 }: DaySectionProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const [decoration] = useState<DecorationStyle>(() => randomDecoration());
 
   const handleToggle = () => setCollapsed(c => !c);
 
@@ -81,17 +71,15 @@ export default function DaySection({
               >
                 {/* Image cards grid */}
                 {images.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
                     {images.map(img => (
-                      <div key={img.id} className="relative">
-                        <CardDecoration decoration={decoration} />
-                        <ImageCard
-                          image={img}
-                          onDelete={onDeleteImage}
-                          onDeleteTerm={onDeleteTerm}
-                          onRegenerate={onRegenerate}
-                        />
-                      </div>
+                      <ImageCard
+                        key={img.id}
+                        image={img}
+                        onDelete={onDeleteImage}
+                        onDeleteTerm={onDeleteTerm}
+                        onRegenerate={onRegenerate}
+                      />
                     ))}
                   </div>
                 ) : (
@@ -100,17 +88,12 @@ export default function DaySection({
                   </div>
                 )}
 
-                {/* Upload */}
-                <div className="mb-4">
-                  <ImageUploader onUpload={onUpload} uploading={uploading} />
-                </div>
-
-                {/* Note */}
-                <DayNote
-                  content={note?.content || ''}
-                  onSave={onSaveNote}
-                  saving={noteSaving}
-                />
+                {/* Upload — only on today */}
+                {isToday && (
+                  <div className="mb-4">
+                    <ImageUploader onUpload={onUpload} uploading={uploading} />
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
