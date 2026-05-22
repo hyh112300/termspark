@@ -70,7 +70,7 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
     // Save to DB
     const [record] = await db.insert(schema.images).values({
       filename: file.filename,
-      originalName: file.originalname,
+      originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
       weekStart,
       dayOfWeek,
     }).returning();

@@ -9,15 +9,18 @@ interface OpenAIChatResponse {
 }
 
 export async function generateTerms(imageBase64: string): Promise<string[]> {
-  const prompt = `You are a design terminology expert. Analyze this image and identify 5-10 specific design-related terminology keywords that describe the visual design elements, style, color palette, typography, layout, composition, or design techniques visible in this image.
+  const prompt = `你是一名设计术语专家。分析这张图片，识别出 5-10 个与视觉设计元素、风格、配色、排版、布局、构图或设计手法相关的专业设计术语关键词。
 
-Return ONLY a JSON array of strings, nothing else. Example: ["minimalism","grid layout","sans-serif","negative space","flat design"]
+只返回一个 JSON 字符串数组，不要其他内容。示例：["极简主义","网格布局","无衬线字体","负空间","扁平设计"]
 
-Generate 5-10 terms:`;
+生成 5-10 个中文术语：`;
 
   const response = await fetch(`${config.omlxUrl}/chat/completions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${config.omlxApiKey}`,
+    },
     body: JSON.stringify({
       model: config.omlxModel,
       messages: [

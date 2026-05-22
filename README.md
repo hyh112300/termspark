@@ -27,7 +27,7 @@
 - Node.js >= 22
 - pnpm >= 10
 - PostgreSQL >= 15
-- oMLX（已加载 gemma-4-e4b-it-8bit 模型）
+- oMLX（已加载 gemma-4-e4b-it-4bit 模型）
 
 ### 1. 克隆项目
 
@@ -49,7 +49,7 @@ pnpm approve-builds  # 允许 sharp 等包的构建脚本
 ```env
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/termspark
 oMLX_URL=http://127.0.0.1:8000/v1
-oMLX_MODEL=gemma-4-e4b-it-8bit
+oMLX_MODEL=gemma-4-e4b-it-4bit
 PORT=3001
 ```
 
@@ -69,7 +69,7 @@ pnpm --filter server db:push
 
 ```bash
 # 启动 oMLX 服务（OpenAI 兼容 API 默认监听 127.0.0.1:8000）
-# 确保已加载 gemma-4-e4b-it-8bit 模型
+# 确保已加载 gemma-4-e4b-it-4bit 模型
 ```
 
 ### 7. 启动开发环境
@@ -124,5 +124,5 @@ termspark/
 |---|---|---|
 | `DATABASE_URL` | `postgres://postgres:postgres@localhost:5432/termspark` | PostgreSQL 连接字符串 |
 | `oMLX_URL` | `http://127.0.0.1:8000/v1` | oMLX OpenAI 兼容 API 地址 |
-| `oMLX_MODEL` | `gemma-4-e4b-it-8bit` | 模型名称 |
+| `oMLX_MODEL` | `gemma-4-e4b-it-4bit` | 模型名称 |
 | `PORT` | `3001` | 后端服务端口 |
