@@ -4,35 +4,45 @@ interface CardDecorationProps {
   decoration: Decoration;
 }
 
-const decorationStyles: Record<Decoration['type'], { bg: string; icon?: string; width: string }> = {
-  'washi-green': { bg: 'bg-emerald-300/60', width: 'w-16' },
-  'washi-pink': { bg: 'bg-pink-300/60', width: 'w-14' },
-  'washi-blue': { bg: 'bg-sky-300/60', width: 'w-16' },
-  'pin-red': { bg: '', width: '' },
-  'pin-blue': { bg: '', width: '' },
-  'clip': { bg: '', width: '' },
-  'tape-cream': { bg: 'bg-[#f5e6d3]/70', width: 'w-12' },
-  'tape-grid': { bg: 'bg-[#f5e6d3]/60 tape-stripe', width: 'w-14' },
-};
-
 export default function CardDecoration({ decoration }: CardDecorationProps) {
-  const style = decorationStyles[decoration.type];
+  // Washi tape variants
+  const washiColors: Record<string, string> = {
+    'washi-green': 'tape-washi-green',
+    'washi-pink': 'tape-washi-pink',
+    'washi-blue': 'tape-washi-blue',
+  };
 
-  // Push pins
-  if (decoration.type === 'pin-red' || decoration.type === 'pin-blue') {
-    const color = decoration.type === 'pin-red' ? 'text-red-500' : 'text-blue-500';
+  if (decoration.type in washiColors) {
+    const bg = washiColors[decoration.type];
+
     return (
       <div
-        className={`absolute ${color} drop-shadow-md`}
+        className={`tape tape-washi ${bg}`}
         style={{
           left: `${decoration.x}%`,
-          top: `${decoration.y}%`,
-          transform: `rotate(${decoration.rotation}deg) translate(-50%, -50%)`,
+          top: `${decoration.y}px`,
+          transform: `rotate(${decoration.rotation}deg) translateX(-50%)`,
+          width: '48px',
+        }}
+      />
+    );
+  }
+
+  // Push pins
+  if (decoration.type.startsWith('pin-')) {
+    const fill = decoration.type === 'pin-red' ? '#c47a7a' : '#7fa3b0';
+    return (
+      <div
+        className="pin absolute z-2"
+        style={{
+          left: `${decoration.x}%`,
+          top: `${decoration.y}px`,
+          transform: 'translate(-50%, -50%)',
         }}
       >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <circle cx="8" cy="3" r="3" />
-          <rect x="7" y="5" width="2" height="8" rx="1" />
+        <svg width="14" height="18" viewBox="0 0 14 18" fill="none">
+          <circle cx="7" cy="5" r="4.5" fill={fill} stroke="rgba(0,0,0,0.06)" strokeWidth="0.5" />
+          <rect x="6" y="8" width="2" height="8" rx="1" fill={fill} opacity="0.5" />
         </svg>
       </div>
     );
@@ -42,28 +52,35 @@ export default function CardDecoration({ decoration }: CardDecorationProps) {
   if (decoration.type === 'clip') {
     return (
       <div
-        className="absolute text-gray-400 drop-shadow-sm"
+        className="absolute z-2 opacity-40"
         style={{
           left: `${decoration.x}%`,
-          top: `${decoration.y}%`,
+          top: `${decoration.y}px`,
           transform: `rotate(${decoration.rotation}deg) translate(-50%, -50%)`,
         }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <path d="M6 2v16a4 4 0 0 0 8 0V5a2 2 0 0 0-4 0v12" />
+        <svg width="18" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-(--ink-muted)">
+          <path d="M6 3v14a4 4 0 0 0 8 0V5a2 2 0 0 0-4 0v12" />
         </svg>
       </div>
     );
   }
 
-  // Washi tape / cream tape / grid tape
+  // Tape (cream / grid)
   return (
     <div
-      className={`absolute ${style.bg} ${style.width} h-6 rounded-sm -mt-1`}
+      className="tape"
       style={{
         left: `${decoration.x}%`,
-        top: `${decoration.y}%`,
-        transform: `rotate(${decoration.rotation}deg) translate(-50%, -50%)`,
+        top: `${decoration.y}px`,
+        transform: `rotate(${decoration.rotation}deg) translateX(-50%)`,
+        width: '36px',
+        height: '8px',
+        borderRadius: '1px',
+        opacity: 0.5,
+        background: decoration.type === 'tape-cream'
+          ? 'linear-gradient(90deg, transparent, #d4c8b4 30%, #d4c8b4 70%, transparent)'
+          : 'linear-gradient(90deg, transparent, rgba(196, 136, 60, 0.12) 25%, rgba(196, 136, 60, 0.12) 75%, transparent)',
       }}
     />
   );

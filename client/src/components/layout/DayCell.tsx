@@ -9,17 +9,18 @@ interface DayCellProps {
   dayIndex: number;
   dayName: string;
   images: ImageRecord[];
-  uploading: boolean;
   onUpload: (file: File, dayOfWeek: number) => Promise<void>;
   onDeleteImage: (id: number) => void;
   onDeleteTerm: (termId: number) => void;
   onRegenerate: (imageId: number) => void;
   className?: string;
+  isWeekend?: boolean;
 }
 
 export default function DayCell({
-  dayIndex, dayName, images, uploading,
+  dayIndex, dayName, images,
   onUpload, onDeleteImage, onDeleteTerm, onRegenerate, className,
+  isWeekend,
 }: DayCellProps) {
   const [isUploading, setIsUploading] = useState(false);
 
@@ -34,19 +35,24 @@ export default function DayCell({
 
   return (
     <div className={cn(
-      'flex flex-col rounded-xl border border-(--border-color) bg-(--bg-secondary)/50 p-3 min-h-60',
+      'flex flex-col rounded-lg p-2.5 sm:p-3 pt-0 min-h-40 sm:min-h-50',
+      'panel-glass',
       className
     )}>
-      {/* Day header */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-sm font-semibold text-(--text-primary)">{dayName}</span>
-        <span className="text-xs text-(--text-muted)">
-          {images.length > 0 && `${images.length} 张卡片`}
-        </span>
+      {/* Day header — tab */}
+      <div className="flex justify-center">
+        <div className={isWeekend ? 'day-tab day-tab-weekend' : 'day-tab'}>
+          <span>{dayName}</span>
+          {images.length > 0 && (
+            <span className="text-[10px] opacity-70 font-sans font-normal">
+              {images.length}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Image cards */}
-      <div className="flex-1 flex flex-wrap gap-3 content-start overflow-y-auto">
+      {/* Content — overflow-visible so absolute terms can spill out */}
+      <div className="flex-1 flex flex-wrap gap-2 sm:gap-2.5 content-start pt-2.5">
         <AnimatePresence>
           {images.map(img => (
             <ImageCard
@@ -59,7 +65,6 @@ export default function DayCell({
           ))}
         </AnimatePresence>
 
-        {/* Uploader */}
         <ImageUploader onUpload={handleUpload} uploading={isUploading} />
       </div>
     </div>

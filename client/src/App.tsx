@@ -83,6 +83,33 @@ function AppInner() {
     }
   }, [saveNote]);
 
+  // Global paste handler — paste screenshots into today's slot
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            const today = new Date().getDay();
+            const dayOfWeek = today === 0 ? 6 : today - 1; // 0=Mon … 6=Sun
+            try {
+              await uploadImage(file, dayOfWeek);
+              toast.success('粘贴截图成功，AI 正在生成术语...');
+            } catch (err: any) {
+              toast.error(`上传失败: ${err.message}`);
+            }
+          }
+          break;
+        }
+      }
+    };
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [uploadImage]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <WeekHeader
@@ -112,7 +139,6 @@ function AppInner() {
         ) : (
           <WeekGrid
             images={images}
-            uploading={false}
             onUpload={handleUpload}
             onDeleteImage={handleDeleteImage}
             onDeleteTerm={handleDeleteTerm}

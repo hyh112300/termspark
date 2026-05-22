@@ -20,7 +20,6 @@ export default function NotesRow({ initialContent, onSave, saving }: NotesRowPro
     setContent(initialContent);
   }, [initialContent]);
 
-  // Auto-save with debounce
   const handleChange = useCallback((value: string) => {
     setContent(value);
     clearTimeout(debounceRef.current ?? undefined);
@@ -29,7 +28,6 @@ export default function NotesRow({ initialContent, onSave, saving }: NotesRowPro
     }, 1500);
   }, [onSave]);
 
-  // Resize handling
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
     startYRef.current = e.clientY;
@@ -57,30 +55,40 @@ export default function NotesRow({ initialContent, onSave, saving }: NotesRowPro
   return (
     <motion.div
       layout
-      className="rounded-xl border border-(--border-color) bg-(--bg-secondary)/50 overflow-hidden"
+      className="sticky-note overflow-hidden"
       style={{ height }}
     >
-      {/* Drag handle */}
-      <div
-        className="resize-handle flex items-center justify-center cursor-row-resize select-none"
-        onMouseDown={handleMouseDown}
-      >
-        <GripHorizontal className="w-4 h-4 text-(--text-muted)" />
+      {/* Resize handle */}
+      <div className="resize-handle" onMouseDown={handleMouseDown}>
+        <GripHorizontal className="w-3.5 h-3.5 text-(--text-muted)" />
       </div>
 
-      <div className="flex items-center gap-2 px-4 pt-1">
-        <span className="text-sm font-semibold text-(--text-primary)">笔记</span>
-        {saving && (
-          <span className="text-xs text-(--text-muted) animate-pulse">保存中...</span>
-        )}
+      {/* Header */}
+      <div className="px-4 pt-0 pb-1 flex items-center justify-between select-none">
+        <span className="text-sm text-hand font-semibold text-(--ink-soft)">
+          📝 笔记
+        </span>
+        <div className="flex items-center gap-2">
+          {saving && (
+            <span className="text-[10px] text-(--text-muted) animate-pulse font-sans">
+              保存中...
+            </span>
+          )}
+          {!saving && content.length > 0 && (
+            <span className="text-[10px] text-(--text-muted)/50 font-sans">
+              {content.length} 字
+            </span>
+          )}
+        </div>
       </div>
 
+      {/* Textarea */}
       <textarea
         value={content}
         onChange={(e) => handleChange(e.target.value)}
-        placeholder="记点东西..."
-        className="w-full h-[calc(100%-40px)] px-4 py-2 bg-transparent resize-none text-sm
-          text-(--text-primary) placeholder-(--text-muted)/50
+        placeholder="粘贴截图后，在这里记录你的设计思考..."
+        className="w-full h-[calc(100%-42px)] px-4 py-1.5 bg-transparent resize-none text-sm
+          text-(--text-primary) placeholder-(--text-muted)/30
           focus:outline-none text-hand leading-relaxed"
       />
     </motion.div>

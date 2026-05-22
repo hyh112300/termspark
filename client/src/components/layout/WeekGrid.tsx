@@ -4,7 +4,6 @@ import { dayNames } from '@/lib/utils';
 
 interface WeekGridProps {
   images: ImageRecord[];
-  uploading: boolean;
   onUpload: (file: File, dayOfWeek: number) => Promise<void>;
   onDeleteImage: (id: number) => void;
   onDeleteTerm: (termId: number) => void;
@@ -12,7 +11,7 @@ interface WeekGridProps {
 }
 
 export default function WeekGrid({
-  images, uploading, onUpload, onDeleteImage, onDeleteTerm, onRegenerate,
+  images, onUpload, onDeleteImage, onDeleteTerm, onRegenerate,
 }: WeekGridProps) {
   const names = dayNames();
 
@@ -20,7 +19,7 @@ export default function WeekGrid({
     images.filter(img => img.dayOfWeek === dayIndex);
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5">
       {/* Row 1: Mon, Tue, Wed */}
       {[0, 1, 2].map(dayIndex => (
         <DayCell
@@ -28,7 +27,6 @@ export default function WeekGrid({
           dayIndex={dayIndex}
           dayName={names[dayIndex]}
           images={getImagesForDay(dayIndex)}
-          uploading={uploading}
           onUpload={onUpload}
           onDeleteImage={onDeleteImage}
           onDeleteTerm={onDeleteTerm}
@@ -36,12 +34,11 @@ export default function WeekGrid({
         />
       ))}
 
-      {/* Row 2: Thu, Fri, Weekend (merged) */}
+      {/* Row 2: Thu, Fri, Weekend */}
       <DayCell
         dayIndex={3}
         dayName={names[3]}
         images={getImagesForDay(3)}
-        uploading={uploading}
         onUpload={onUpload}
         onDeleteImage={onDeleteImage}
         onDeleteTerm={onDeleteTerm}
@@ -51,7 +48,6 @@ export default function WeekGrid({
         dayIndex={4}
         dayName={names[4]}
         images={getImagesForDay(4)}
-        uploading={uploading}
         onUpload={onUpload}
         onDeleteImage={onDeleteImage}
         onDeleteTerm={onDeleteTerm}
@@ -61,12 +57,11 @@ export default function WeekGrid({
         dayIndex={5}
         dayName={names[5]}
         images={[...getImagesForDay(5), ...getImagesForDay(6)]}
-        uploading={uploading}
-        onUpload={(file) => onUpload(file, 5)} // Weekend goes to Saturday slot
+        onUpload={(file) => onUpload(file, 5)}
         onDeleteImage={onDeleteImage}
         onDeleteTerm={onDeleteTerm}
         onRegenerate={onRegenerate}
-        className="col-span-1"
+        isWeekend
       />
     </div>
   );
