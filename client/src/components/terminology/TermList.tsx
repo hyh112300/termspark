@@ -28,7 +28,7 @@ export default function TermList({ terms, onDeleteTerm }: TermListProps) {
         <button
           onClick={() => setExpanded(true)}
           className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs
-            bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--border-color)]
+            bg-(--bg-secondary) text-(--text-muted) hover:bg-(--border-color)
             transition-colors text-hand"
         >
           +{remaining}
@@ -39,7 +39,7 @@ export default function TermList({ terms, onDeleteTerm }: TermListProps) {
         <button
           onClick={() => setExpanded(false)}
           className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs
-            bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--border-color)]
+            bg-(--bg-secondary) text-(--text-muted) hover:bg-(--border-color)
             transition-colors text-hand"
         >
           收起

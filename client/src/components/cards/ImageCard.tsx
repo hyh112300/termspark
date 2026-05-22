@@ -33,17 +33,17 @@ export default function ImageCard({ image, onDelete, onDeleteTerm, onRegenerate 
         animate={{ opacity: 1, scale: 1, rotate: 0 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        className="relative polaroid p-2 pb-3 rounded-sm w-[180px] shrink-0 group"
+        className="relative polaroid p-2 pb-3 rounded-sm w-45 shrink-0 group"
       >
         <CardDecoration decoration={decoration} />
 
         {/* Image */}
         <div
-          className="relative aspect-square overflow-hidden rounded-sm cursor-pointer bg-[var(--bg-secondary)]"
+          className="relative aspect-square overflow-hidden rounded-sm cursor-pointer bg-(--bg-secondary)"
           onClick={() => setShowPreview(true)}
         >
           {!imgLoaded && (
-            <div className="absolute inset-0 animate-pulse bg-[var(--bg-secondary)]" />
+            <div className="absolute inset-0 animate-pulse bg-(--bg-secondary)" />
           )}
           <img
             src={`/uploads/${image.filename}`}
@@ -55,19 +55,19 @@ export default function ImageCard({ image, onDelete, onDeleteTerm, onRegenerate 
         </div>
 
         {/* File name (handwritten style) */}
-        <p className="mt-2 text-xs text-hand text-[var(--text-muted)] text-center truncate px-1">
+        <p className="mt-2 text-xs text-hand text-(--text-muted) text-center truncate px-1">
           {image.originalName}
         </p>
 
         {/* Hover actions */}
         <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-          <Button variant="ghost" size="icon" className="!p-1 !h-7 !w-7 bg-white/80 dark:bg-black/40" onClick={() => setShowPreview(true)}>
+          <Button variant="ghost" size="icon" className="p-1! h-7! w-7! bg-white/80 dark:bg-black/40" onClick={() => setShowPreview(true)}>
             <Maximize2 className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="!p-1 !h-7 !w-7 bg-white/80 dark:bg-black/40" onClick={() => onRegenerate(image.id)}>
+          <Button variant="ghost" size="icon" className="p-1! h-7! w-7! bg-white/80 dark:bg-black/40" onClick={() => onRegenerate(image.id)}>
             <RefreshCw className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="!p-1 !h-7 !w-7 bg-white/80 dark:bg-black/40 text-red-500" onClick={handleDelete}>
+          <Button variant="ghost" size="icon" className="p-1! h-7! w-7! bg-white/80 dark:bg-black/40 text-red-500" onClick={handleDelete}>
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>

@@ -28,8 +28,8 @@ export default function TermTag({ term, onDelete }: TermTagProps) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
       className="relative inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs cursor-pointer
-        bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20
-        hover:bg-[var(--accent)]/20 transition-colors select-none"
+        bg-(--accent)/10 text-(--accent) border border-(--accent)/20
+        hover:bg-(--accent)/20 transition-colors select-none"
       onClick={handleClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -39,7 +39,7 @@ export default function TermTag({ term, onDelete }: TermTagProps) {
         <motion.span
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 text-[10px] rounded bg-[#3d2b1f] text-[#fef3c7] whitespace-nowrap"
+          className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 text-[10px] rounded bg-warm-ink text-amber-100 whitespace-nowrap"
         >
           已复制
         </motion.span>
