@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+@theme {
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+  --color-amber-950: #451a03;
+
+  --color-warm-cream: #fef9ed;
+  --color-warm-sand: #f5e6d3;
+  --color-warm-kraft: #d4a574;
+  --color-warm-wood: #8b6914;
+  --color-warm-ink: #3d2b1f;
+
+  --font-hand: 'Caveat', cursive;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Warm amber theme - light mode */
+:root {
+  --bg-primary: #fef9ed;
+  --bg-secondary: #fef3c7;
+  --bg-card: #fef9ed;
+  --text-primary: #3d2b1f;
+  --text-secondary: #92400e;
+  --text-muted: #b45309;
+  --border-color: #fcd34d;
+  --accent: #f59e0b;
+  --accent-hover: #d97706;
+}
+
+/* Dark mode */
+.dark {
+  --bg-primary: #1a1410;
+  --bg-secondary: #2d2018;
+  --bg-card: #2d2018;
+  --text-primary: #fef3c7;
+  --text-secondary: #fde68a;
+  --text-muted: #fbbf24;
+  --border-color: #92400e;
+  --accent: #f59e0b;
+  --accent-hover: #fbbf24;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Polaroid card effect */
+.polaroid {
+  background: #fef9ed;
+  border: 2px solid #f5e6d3;
+  box-shadow:
+    2px 2px 8px rgba(139, 105, 20, 0.15),
+    -1px -1px 4px rgba(139, 105, 20, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dark .polaroid {
+  background: #2d2018;
+  border-color: #78350f;
+  box-shadow:
+    2px 2px 8px rgba(245, 158, 11, 0.12),
+    -1px -1px 4px rgba(245, 158, 11, 0.05);
+}
+
+.polaroid:hover {
+  transform: translateY(-2px) rotate(-0.5deg);
+  box-shadow:
+    4px 4px 16px rgba(139, 105, 20, 0.2),
+    -2px -2px 8px rgba(139, 105, 20, 0.1);
+}
+
+/* Washi tape decorations */
+.tape {
+  position: absolute;
+  height: 24px;
+  opacity: 0.7;
+  z-index: 2;
+}
+
+.tape-stripe {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(139, 105, 20, 0.2) 4px,
+    rgba(139, 105, 20, 0.2) 6px
+  );
+}
+
+/* Handwritten style text */
+.text-hand {
+  font-family: var(--font-hand);
+  letter-spacing: 0.02em;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+/* Resizable handle */
+.resize-handle {
+  cursor: row-resize;
+  height: 8px;
+  background: linear-gradient(to bottom, var(--border-color), transparent);
+  border-radius: 0 0 4px 4px;
+}
+
+.resize-handle:hover {
+  background: linear-gradient(to bottom, var(--accent), transparent);
+}
