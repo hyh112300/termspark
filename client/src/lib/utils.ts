@@ -5,6 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/* ══════════════════════════════════
+   Date utilities (remains backward compatible)
+   ══════════════════════════════════ */
+
 export function getWeekStart(date: Date = new Date()): Date {
   const d = new Date(date);
   const day = d.getDay();
@@ -34,29 +38,101 @@ export function formatDateRange(start: Date, end: Date): string {
   return `${startStr} — ${endStr}`;
 }
 
-export function formatWeekStart(date: Date): string {
+export function formatDate(date: Date): string {
   return date.toISOString().split('T')[0];
 }
 
-export function dayNames(): string[] {
-  return ['周一', '周二', '周三', '周四', '周五', '周末'];
+export { formatDate as formatWeekStart };
+
+/* ══════════════════════════════════
+   Timeline / Day helpers
+   ══════════════════════════════════ */
+
+export function getTodayStr(): string {
+  return formatDate(new Date());
 }
 
-const decorations = [
-  { type: 'washi-green' as const, x: 20, y: -8, rotation: -3 },
-  { type: 'washi-pink' as const, x: 70, y: -6, rotation: 2 },
-  { type: 'washi-blue' as const, x: 45, y: -10, rotation: -5 },
-  { type: 'pin-red' as const, x: 50, y: 5, rotation: 0 },
-  { type: 'pin-blue' as const, x: 30, y: 3, rotation: 0 },
-  { type: 'clip' as const, x: 85, y: -2, rotation: 8 },
-  { type: 'tape-cream' as const, x: 15, y: -5, rotation: -2 },
-  { type: 'tape-grid' as const, x: 55, y: -7, rotation: 3 },
+export function getDayNames(): string[] {
+  return ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+}
+
+export function getDayName(dayOfWeek: number): string {
+  return getDayNames()[dayOfWeek] || '';
+}
+
+export function formatDisplayDate(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  return `${month}月${day}日`;
+}
+
+export function isToday(dateStr: string): boolean {
+  return dateStr === getTodayStr();
+}
+
+export function dateFromWeekStart(weekStart: string, dayOfWeek: number): string {
+  const d = new Date(weekStart + 'T00:00:00');
+  d.setDate(d.getDate() + dayOfWeek);
+  return formatDate(d);
+}
+
+export function groupImagesByDate(
+  images: ImageRecord[],
+  notes: Map<string, NoteRecord>
+): DayGroup[] {
+  const map = new Map<string, ImageRecord[]>();
+  images.forEach(img => {
+    const date = dateFromWeekStart(img.weekStart, img.dayOfWeek);
+    if (!map.has(date)) map.set(date, []);
+    map.get(date)!.push(img);
+  });
+
+  // Collect all unique dates and sort
+  const dates = Array.from(map.keys()).sort();
+
+  return dates.map(date => {
+    const d = new Date(date + 'T00:00:00');
+    const dayOfWeek = (d.getDay() + 6) % 7; // 0=Mon
+    return {
+      date,
+      dayOfWeek,
+      dayName: getDayName(dayOfWeek),
+      displayDate: formatDisplayDate(date),
+      isToday: isToday(date),
+      images: map.get(date) || [],
+      note: notes.get(date) || null,
+    };
+  });
+}
+
+/* ══════════════════════════════════
+   Decoration (simplified pastel)
+   ══════════════════════════════════ */
+const pastelColors = [
+  'var(--pastel-pink)',
+  'var(--pastel-green)',
+  'var(--pastel-blue)',
+  'var(--pastel-yellow)',
 ];
 
+export function randomPastelColor(): string {
+  return pastelColors[Math.floor(Math.random() * pastelColors.length)];
+}
+
 export function randomDecoration() {
-  return decorations[Math.floor(Math.random() * decorations.length)];
+  return {
+    type: 'pastel-dot' as const,
+    color: randomPastelColor(),
+    x: Math.random() * 80 + 10,
+    y: Math.random() * 60 + 10,
+    size: Math.random() * 6 + 4,
+  };
 }
 
 export function copyToClipboard(text: string): Promise<boolean> {
   return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
 }
+
+/* ── Re-import types locally to avoid circular deps ── */
+import type { ImageRecord, NoteRecord, DayGroup } from '@/types';

@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
 import { db, schema } from '../db/index.js';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql, lte, gte, like, inArray } from 'drizzle-orm';
 import { generateTerms } from '../services/ai.js';
 import { config } from '../config.js';
 
@@ -41,12 +41,35 @@ const upload = multer({
 function getWeekStart(date: Date): string {
   const d = new Date(date);
   const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as week start
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   d.setDate(diff);
   return d.toISOString().split('T')[0];
 }
 
-// Upload image & trigger AI
+function getDateWeekStart(dateStr: string): { weekStart: string; dayOfWeek: number } {
+  const d = new Date(dateStr + 'T00:00:00');
+  const dow = (d.getDay() + 6) % 7; // 0=Mon
+  const ws = getWeekStart(d);
+  return { weekStart: ws, dayOfWeek: dow };
+}
+
+// Helper to attach terms to image records
+async function attachTerms(images: any[]): Promise<any[]> {
+  return Promise.all(
+    images.map(async (img) => {
+      const termRecords = await db.select()
+        .from(schema.terms)
+        .where(eq(schema.terms.imageId, img.id))
+        .orderBy(schema.terms.createdAt);
+      return { ...img, terms: termRecords };
+    })
+  );
+}
+
+/* ════════════════════════════════════════════
+   Upload image & trigger AI
+   Now accepts `date` instead of weekStart+dayOfWeek
+   ════════════════════════════════════════════ */
 router.post('/', upload.single('image'), async (req: Request, res: Response) => {
   try {
     const file = req.file;
@@ -55,11 +78,10 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
       return;
     }
 
-    const { weekStart: ws, dayOfWeek: dow } = req.body;
-    const weekStart = ws || getWeekStart(new Date());
-    const dayOfWeek = parseInt(dow ?? new Date().getDay().toString(), 10);
+    const { date: dateParam } = req.body;
+    const dateStr = dateParam || new Date().toISOString().split('T')[0];
+    const { weekStart, dayOfWeek } = getDateWeekStart(dateStr);
 
-    // Read and optionally resize image for AI
     const imageBuffer = fs.readFileSync(file.path);
     const resized = await sharp(imageBuffer)
       .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
@@ -67,7 +89,6 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
       .toBuffer();
     const imageBase64 = resized.toString('base64');
 
-    // Save to DB
     const [record] = await db.insert(schema.images).values({
       filename: file.filename,
       originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
@@ -75,16 +96,13 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
       dayOfWeek,
     }).returning();
 
-    // Generate terms with AI
     let terms: string[] = [];
     try {
       terms = await generateTerms(imageBase64);
     } catch (aiErr) {
       console.error('AI generation failed:', aiErr);
-      terms = []; // Graceful fallback
     }
 
-    // Save terms
     const termRecords = [];
     for (const term of terms) {
       const [tr] = await db.insert(schema.terms).values({
@@ -104,33 +122,138 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
   }
 });
 
-// Get images for a week
-router.get('/', async (req: Request, res: Response) => {
+/* ════════════════════════════════════════════
+   [NEW] Timeline — paginated, centered on a date
+   ════════════════════════════════════════════ */
+router.get('/timeline', async (req: Request, res: Response) => {
   try {
-    const { weekStart } = req.query;
-    if (!weekStart || typeof weekStart !== 'string') {
-      res.status(400).json({ error: 'weekStart query param required' });
+    const { around, before, after, limit: limitStr } = req.query;
+    const limit = Math.min(parseInt(limitStr as string) || 14, 56);
+
+    if (before && typeof before === 'string') {
+      // Load images with weekStart < before's weekStart
+      const { weekStart: beforeWs } = getDateWeekStart(before);
+      const imageRecords = await db.select()
+        .from(schema.images)
+        .where(lte(schema.images.weekStart, beforeWs))
+        .orderBy(schema.images.weekStart, schema.images.createdAt)
+        .limit(limit + 1);
+
+      const hasMore = imageRecords.length > limit;
+      const items = await attachTerms(imageRecords.slice(0, limit));
+      const nextCursor = items.length > 0
+        ? items[items.length - 1].weekStart
+        : null;
+
+      res.json({ items, hasMore, nextCursor });
       return;
     }
 
-    const imageRecords = await db.select()
+    if (after && typeof after === 'string') {
+      // Load images with weekStart > after's weekStart
+      const { weekStart: afterWs } = getDateWeekStart(after);
+      const imageRecords = await db.select()
+        .from(schema.images)
+        .where(gte(schema.images.weekStart, afterWs))
+        .orderBy(schema.images.weekStart, schema.images.createdAt)
+        .limit(limit + 1);
+
+      const hasMore = imageRecords.length > limit;
+      const items = await attachTerms(imageRecords.slice(0, limit));
+      const nextCursor = items.length > 0
+        ? items[items.length - 1].weekStart
+        : null;
+
+      res.json({ items, hasMore, nextCursor });
+      return;
+    }
+
+    // Default: load around a specific date
+    const aroundDate = (around as string) || new Date().toISOString().split('T')[0];
+    const { weekStart: centerWs } = getDateWeekStart(aroundDate);
+
+    // Load past (before centerWs)
+    const pastRecords = await db.select()
       .from(schema.images)
-      .where(eq(schema.images.weekStart, weekStart))
+      .where(lte(schema.images.weekStart, centerWs))
+      .orderBy(schema.images.weekStart, schema.images.createdAt)
+      .limit(limit + 1);
+
+    // Load future (after centerWs)
+    const futureRecords = await db.select()
+      .from(schema.images)
+      .where(gte(schema.images.weekStart, centerWs))
+      .orderBy(schema.images.weekStart, schema.images.createdAt)
+      .limit(limit + 1);
+
+    // Combine: past + center + future, deduplicate
+    const seen = new Set<number>();
+    const combined = [...pastRecords, ...futureRecords].filter(r => {
+      if (seen.has(r.id)) return false;
+      seen.add(r.id);
+      return true;
+    });
+
+    const hasMorePast = pastRecords.length > limit;
+    const hasMoreFuture = futureRecords.length > limit;
+    const items = await attachTerms(combined);
+    const pastCursor = pastRecords.length > 0
+      ? pastRecords[0].weekStart
+      : null;
+    const futureCursor = futureRecords.length > 0
+      ? futureRecords[futureRecords.length - 1].weekStart
+      : null;
+
+    res.json({
+      items,
+      hasMorePast,
+      hasMoreFuture,
+      pastCursor,
+      futureCursor,
+    });
+  } catch (err: any) {
+    console.error('Timeline error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ════════════════════════════════════════════
+   [NEW] Search images by term
+   ════════════════════════════════════════════ */
+router.get('/search', async (req: Request, res: Response) => {
+  try {
+    const { q, limit: limitStr } = req.query;
+    const searchQuery = (q as string) || '';
+    const limit = Math.min(parseInt(limitStr as string) || 20, 100);
+
+    if (!searchQuery.trim()) {
+      res.json({ items: [], total: 0 });
+      return;
+    }
+
+    // Find image IDs that have matching terms
+    const matchingTermImages = await db.select({ imageId: schema.terms.imageId })
+      .from(schema.terms)
+      .where(sql`${schema.terms.term} ILIKE ${'%' + searchQuery + '%'}`)
+      .groupBy(schema.terms.imageId)
+      .limit(limit);
+
+    if (matchingTermImages.length === 0) {
+      res.json({ items: [], total: 0 });
+      return;
+    }
+
+    const imageIds = matchingTermImages.map(t => t.imageId);
+    const records = await db.select()
+      .from(schema.images)
+      .where(inArray(schema.images.id, imageIds))
       .orderBy(schema.images.createdAt);
 
-    // Fetch terms for each image
-    const result = await Promise.all(
-      imageRecords.map(async (img) => {
-        const termRecords = await db.select()
-          .from(schema.terms)
-          .where(eq(schema.terms.imageId, img.id))
-          .orderBy(schema.terms.createdAt);
-        return { ...img, terms: termRecords };
-      })
-    );
+    const items = await attachTerms(records);
 
-    res.json(result);
+    res.json({ items, total: items.length });
   } catch (err: any) {
+    console.error('Search error:', err);
     res.status(500).json({ error: err.message });
   }
 });

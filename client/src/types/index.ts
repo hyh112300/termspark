@@ -17,24 +17,51 @@ export interface TermRecord {
 
 export interface NoteRecord {
   id?: number;
-  weekStart: string;
+  date: string;
   content: string;
   updatedAt?: string;
 }
 
-export interface WeekData {
-  weekStart: string;
-  weekEnd: string;
-  weekNumber: number;
+export interface NoteSaveRequest {
+  date: string;
+  content: string;
+}
+
+export interface DayGroup {
+  date: string;          // YYYY-MM-DD
+  dayOfWeek: number;     // 0=Mon ... 6=Sun
+  dayName: string;       // "周四"
+  displayDate: string;   // "5月22日"
+  isToday: boolean;
   images: ImageRecord[];
   note: NoteRecord | null;
 }
 
-export type DecorationType = 'washi-green' | 'washi-pink' | 'washi-blue' | 'pin-red' | 'pin-blue' | 'clip' | 'tape-cream' | 'tape-grid';
-
-export interface Decoration {
-  type: DecorationType;
-  x: number; // percentage 0-100
-  y: number; // percentage 0-100
-  rotation: number; // degrees
+export interface TimelineResponse {
+  items: ImageRecord[];
+  hasMorePast: boolean;
+  hasMoreFuture: boolean;
+  pastCursor: string;
+  futureCursor: string;
 }
+
+export interface TimelinePageResponse {
+  items: ImageRecord[];
+  hasMore: boolean;
+  nextCursor: string;
+}
+
+export interface SearchResponse {
+  items: ImageRecord[];
+  total: number;
+}
+
+export interface DecorationStyle {
+  type: 'pastel-dot';
+  color: string;
+  x: number;
+  y: number;
+  size: number;
+}
+
+export type { NoteRecord as LegacyNoteRecord };

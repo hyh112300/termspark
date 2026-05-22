@@ -4,38 +4,38 @@ import { eq } from 'drizzle-orm';
 
 const router = Router();
 
-// Get note for a week
+// Get note for a date
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { weekStart } = req.query;
-    if (!weekStart || typeof weekStart !== 'string') {
-      res.status(400).json({ error: 'weekStart query param required' });
+    const { date } = req.query;
+    if (!date || typeof date !== 'string') {
+      res.status(400).json({ error: 'date query param required' });
       return;
     }
 
     const [note] = await db.select()
       .from(schema.notes)
-      .where(eq(schema.notes.weekStart, weekStart));
+      .where(eq(schema.notes.date, date));
 
-    res.json(note || { weekStart, content: '' });
+    res.json(note || { date, content: '' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Save note for a week
+// Save note for a date
 router.put('/', async (req: Request, res: Response) => {
   try {
-    const { weekStart, content } = req.body;
-    if (!weekStart) {
-      res.status(400).json({ error: 'weekStart required' });
+    const { date, content } = req.body;
+    if (!date) {
+      res.status(400).json({ error: 'date required' });
       return;
     }
 
     const [note] = await db.insert(schema.notes)
-      .values({ weekStart, content: content || '' })
+      .values({ date, content: content || '' })
       .onConflictDoUpdate({
-        target: schema.notes.weekStart,
+        target: schema.notes.date,
         set: { content: content || '', updatedAt: new Date() },
       })
       .returning();

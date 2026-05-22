@@ -2,54 +2,9 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, RefreshCw } from 'lucide-react';
 import type { ImageRecord, TermRecord } from '@/types';
-import { randomDecoration, copyToClipboard } from '@/lib/utils';
-import CardDecoration from './CardDecoration';
+import { copyToClipboard } from '@/lib/utils';
+import TermTag from '@/components/terminology/TermTag';
 import Dialog from '@/components/ui/Dialog';
-
-/* ── Term tag ── */
-function TermOverlay({ term, onDelete }: { term: TermRecord; onDelete: (id: number) => void }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const ok = await copyToClipboard(term.term);
-    if (ok) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    }
-  };
-
-  return (
-    <motion.button
-      layout
-      initial={{ opacity: 0, y: 6, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 3, scale: 0.85 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 26 }}
-      className="tag-pill text-left truncate max-w-full backdrop-blur-md bg-white/75 dark:bg-[#1f1a15]/75 shadow-sm"
-      onClick={handleClick}
-      title="点击复制"
-    >
-      <span className="truncate text-[11px]">{term.term}</span>
-      {copied && (
-        <motion.span
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-[9px] text-(--warm-amber) font-sans shrink-0"
-        >✓</motion.span>
-      )}
-      <button
-        className="p-1 rounded-full hover:bg-(--warm-rose)/30 text-(--warm-rose)/60 hover:text-(--warm-rose) transition-colors shrink-0"
-        onClick={(e) => { e.stopPropagation(); onDelete(term.id); }}
-        title="删除术语"
-      >
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-          <path d="M2 2l6 6M8 2l-6 6" />
-        </svg>
-      </button>
-    </motion.button>
-  );
-}
 
 /* ── ImageCard ── */
 interface ImageCardProps {
@@ -60,87 +15,90 @@ interface ImageCardProps {
 }
 
 export default function ImageCard({ image, onDelete, onDeleteTerm, onRegenerate }: ImageCardProps) {
-  const [decoration] = useState(() => randomDecoration());
   const [showPreview, setShowPreview] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [hovered, setHovered] = useState(false);
 
-  const handleDelete = useCallback(() => {
-    if (confirm('删除这张卡片？')) onDelete(image.id);
-  }, [image.id, onDelete]);
+  const handleDelete = useCallback(() => onDelete(image.id), [image.id, onDelete]);
+  const handleRegenerate = useCallback(() => onRegenerate(image.id), [image.id, onRegenerate]);
 
-  const showCount = hovered ? image.terms.length : 2;
+  const showCount = hovered ? image.terms.length : 3;
   const termsToShow = image.terms.slice(0, showCount);
   const remaining = image.terms.length - showCount;
 
   return (
     <>
       <div
-        className="relative w-35 sm:w-40 shrink-0 hover:z-40"
+        className="img-card-horizontal group relative"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        <div className="polaroid rounded-xs">
-          <CardDecoration decoration={decoration} />
+        {/* Image thumbnail */}
+        <div
+          className="relative w-24 sm:w-28 aspect-4/3 shrink-0 rounded-lg overflow-hidden cursor-pointer bg-[var(--bg-base)]"
+          onClick={() => setShowPreview(true)}
+        >
+          {!imgLoaded && <div className="absolute inset-0 skeleton" />}
+          <img
+            src={`/uploads/${image.filename}`}
+            alt={image.originalName}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+            loading="lazy"
+            onLoad={() => setImgLoaded(true)}
+          />
 
-          {/* Image */}
-          <div
-            className="relative aspect-4/3 overflow-hidden rounded-[1px] cursor-pointer bg-(--paper-dark)"
-            onClick={() => setShowPreview(true)}
-          >
-            {!imgLoaded && <div className="absolute inset-0 skeleton" />}
-            <img
-              src={`/uploads/${image.filename}`}
-              alt={image.originalName}
-              className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
-              loading="lazy"
-              onLoad={() => setImgLoaded(true)}
-            />
-
-            {/* Gradient backdrop */}
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/25 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-            {/* Action buttons — large click targets */}
+          {/* Action buttons on hover */}
+          <AnimatePresence>
             {hovered && (
-              <div className="absolute top-1.5 right-1.5 z-30 flex gap-1">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/20 flex items-center justify-center gap-2"
+              >
                 <button
-                  onClick={() => onRegenerate(image.id)}
-                  className="p-2 rounded-full bg-white/75 dark:bg-[#1f1a15]/75 backdrop-blur-md shadow-sm text-(--text-muted) hover:text-(--warm-amber) transition-colors hover:scale-110 active:scale-95"
+                  onClick={(e) => { e.stopPropagation(); handleRegenerate(); }}
+                  className="p-1.5 rounded-full bg-white/80 text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors shadow-sm"
                   title="重新生成"
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={handleDelete}
-                  className="p-2 rounded-full bg-white/75 dark:bg-[#1f1a15]/75 backdrop-blur-md shadow-sm text-(--text-muted) hover:text-(--warm-rust) transition-colors hover:scale-110 active:scale-95"
+                  onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+                  className="p-1.5 rounded-full bg-white/80 text-[var(--text-secondary)] hover:text-red-500 transition-colors shadow-sm"
                   title="删除图片"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
-              </div>
+              </motion.div>
             )}
-          </div>
-
-          {/* Caption */}
-          <p className="mt-1.5 text-[11px] text-hand text-(--text-muted) text-center truncate px-1 leading-none">
-            {image.originalName}
-          </p>
+          </AnimatePresence>
         </div>
 
-        {/* Terms — absolute, out of flow, top-left, expand downward */}
-        <div className="absolute left-1.5 right-1.5 z-20 flex flex-col gap-0.5 items-start pointer-events-none"
-          style={{ top: '8px' }}
-        >
-          <AnimatePresence>
-            {termsToShow.map((t) => (
-              <div key={t.id} className="w-full max-w-full pointer-events-auto">
-                <TermOverlay term={t} onDelete={onDeleteTerm} />
-              </div>
-            ))}
-          </AnimatePresence>
-          {!hovered && remaining > 0 && (
-            <span className="tag-count text-[10px] px-1.5 py-0.5 pointer-events-auto">+{remaining}</span>
-          )}
+        {/* Info */}
+        <div className="flex-1 min-w-0 flex flex-col gap-2">
+          {/* File name */}
+          <p className="text-[13px] font-medium text-[var(--text-secondary)] truncate leading-tight">
+            {image.originalName}
+          </p>
+
+          {/* Term tags */}
+          <div className="flex flex-wrap gap-1.5">
+            <AnimatePresence>
+              {termsToShow.map(t => (
+                <TermTag
+                  key={t.id}
+                  term={t.term}
+                  onDelete={() => onDeleteTerm(t.id)}
+                />
+              ))}
+            </AnimatePresence>
+            {!hovered && remaining > 0 && (
+              <span className="text-[11px] text-[var(--text-tertiary)] font-medium px-2 py-0.5 rounded-full bg-[var(--bg-hover)]">
+                +{remaining}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -150,11 +108,11 @@ export default function ImageCard({ image, onDelete, onDeleteTerm, onRegenerate 
           <img
             src={`/uploads/${image.filename}`}
             alt={image.originalName}
-            className="max-w-full max-h-[70vh] rounded object-contain bg-(--paper-dark)"
+            className="max-w-full max-h-[70vh] rounded object-contain bg-[var(--bg-base)]"
           />
           <div className="flex flex-wrap gap-1.5 justify-center max-w-lg">
             {image.terms.map(t => (
-              <span key={t.id} className="tag-pill text-[11px]">{t.term}</span>
+              <span key={t.id} className="term-tag text-[13px]">{t.term}</span>
             ))}
           </div>
         </div>

@@ -18,7 +18,7 @@ export const terms = pgTable('terms', {
 
 export const notes = pgTable('notes', {
   id: serial('id').primaryKey(),
-  weekStart: date('week_start').unique().notNull(),
+  date: date('date').unique().notNull(),
   content: text('content').default('').notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

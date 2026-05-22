@@ -25,24 +25,24 @@ export default function ImageUploader({ onUpload, uploading }: ImageUploaderProp
 
   return (
     <motion.div
-      whileHover={{ scale: 1.03 }}
-      className={`upload-zone w-[100px] ${dragover ? '!border-(--warm-amber) !opacity-80' : ''}`}
+      whileHover={{ scale: 1.02 }}
+      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-[var(--border)] cursor-pointer transition-colors hover:border-[var(--accent)] hover:bg-[var(--accent-bg)] ${
+        dragover ? '!border-[var(--accent)] !bg-[var(--accent-bg)]' : ''
+      } ${uploading ? 'opacity-60 pointer-events-none' : ''}`}
       onClick={() => inputRef.current?.click()}
       onDragOver={(e) => { e.preventDefault(); setDragover(true); }}
       onDragLeave={() => setDragover(false)}
       onDrop={handleDrop}
     >
       {uploading ? (
-        <div className="flex flex-col items-center gap-1.5 py-4">
-          <Loader2 className="w-4 h-4 animate-spin text-(--warm-amber)" />
-          <span className="text-[10px] text-(--text-muted) text-hand">分析中...</span>
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin text-[var(--accent)]" />
+          <span className="text-sm text-[var(--text-secondary)]">分析中...</span>
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-1 py-4">
-          <Camera className="w-4 h-4 text-(--text-muted)" />
-          <span className="text-[10px] text-hand text-(--text-muted) leading-tight text-center px-1">
-            粘贴截图
-          </span>
+        <div className="flex items-center gap-2">
+          <Camera className="w-4 h-4 text-[var(--text-tertiary)]" />
+          <span className="text-sm text-[var(--text-tertiary)]">粘贴截图或拖拽上传</span>
         </div>
       )}
       <input
