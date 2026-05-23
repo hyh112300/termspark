@@ -355,3 +355,101 @@ body {
   60% { opacity: 0.4; }
   100% { transform: translate(-50%, -120px) scale(1); opacity: 0; }
 }
+
+/* Dialog */
+.dialog-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dialog-overlay {
+  position: absolute;
+  inset: 0;
+  background: oklch(0 0 0 / 0.35);
+  backdrop-filter: blur(6px);
+}
+.dialog-panel {
+  position: relative;
+  width: 360px;
+  max-width: calc(100vw - 40px);
+  padding: 32px 24px 24px;
+  border-radius: 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow:
+    0 0 0 1px oklch(0 0 0 / 0.03),
+    0 2px 4px oklch(0 0 0 / 0.02),
+    0 12px 40px oklch(0 0 0 / 0.12);
+}
+/* Washi tape in dialog */
+.dialog-tape {
+  position: absolute;
+  height: 16px;
+  background: var(--tape);
+  border-radius: 2px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+/* Icon ring */
+.dialog-icon-ring {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dialog-icon-ring.variant-info {
+  background: oklch(from var(--color-washi-blue) l c h / 0.18);
+  color: var(--color-washi-blue);
+}
+.dialog-icon-ring.variant-success {
+  background: oklch(from var(--color-washi-green) l c h / 0.18);
+  color: var(--color-washi-green);
+}
+.dialog-icon-ring.variant-warning {
+  background: oklch(from var(--color-washi-yellow) l c h / 0.22);
+  color: oklch(from var(--color-washi-yellow) l c h / 0.9);
+}
+.dialog-icon {
+  width: 24px;
+  height: 24px;
+}
+/* Dialog buttons */
+.dialog-btn {
+  flex: 1;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-hand);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.dialog-btn:active {
+  transform: scale(0.96);
+}
+.dialog-btn-confirm {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.25);
+}
+.dialog-btn-confirm:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.35);
+}
+.dialog-btn-cancel {
+  background: transparent;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+}
+.dialog-btn-cancel:hover {
+  background: var(--secondary);
+  color: var(--foreground);
+}

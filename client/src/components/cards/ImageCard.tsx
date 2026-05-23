@@ -52,7 +52,7 @@ export default function FlipCard({
                 title="预览大图">
                 <Eye className="w-3 h-3" />
               </button>
-              <button onClick={(e) => { e.stopPropagation(); if (confirm("删除这条灵感？")) onDelete(image.id); }}
+              <button onClick={(e) => { e.stopPropagation(); onDelete(image.id); }}
                 className="w-6 h-6 rounded-full bg-destructive/70 hover:bg-destructive text-white flex items-center justify-center transition-colors"
                 title="删除">
                 <Trash2 className="w-2.5 h-2.5" />

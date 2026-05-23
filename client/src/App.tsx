@@ -8,6 +8,7 @@ import SearchPanel from "@/components/layout/SearchPanel";
 import FloatingActionButton from "@/components/layout/FloatingActionButton";
 import ImageUploader from "@/components/cards/ImageUploader";
 import { ImagePreview } from "@/components/layout/ImagePreview";
+import Dialog from "@/components/ui/Dialog";
 import { useTimeline } from "@/hooks/useTimeline";
 import { dateFromWeekStart } from "@/lib/utils";
 import { GlobalLoadingProvider, useGlobalLoading } from "@/components/ui/LoadingOverlay";
@@ -27,6 +28,7 @@ function AppInner() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [regenId, setRegenId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 
   const {
     days,
@@ -89,16 +91,19 @@ function AppInner() {
     [uploadImage],
   );
 
-  const handleDeleteImage = useCallback(
-    async (id: number) => {
-      try {
-        await deleteImage(id);
-      } catch (err: any) {
-        toast.error(`删除失败: ${err.message}`);
-      }
-    },
-    [deleteImage],
-  );
+  const handleDeleteImage = useCallback((id: number) => {
+    setDeleteTarget(id);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (deleteTarget === null) return;
+    try {
+      await deleteImage(deleteTarget);
+      setDeleteTarget(null);
+    } catch (err: any) {
+      toast.error(`删除失败: ${err.message}`);
+    }
+  }, [deleteTarget, deleteImage]);
 
   const handleDeleteTerm = useCallback(
     async (termId: number) => {
@@ -224,6 +229,17 @@ function AppInner() {
         onResultClick={handleSearchResultClick}
       />
       <ImagePreview url={previewUrl} onClose={() => setPreviewUrl(null)} />
+      <Dialog
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        title="删除这条灵感？"
+        message="删除后无法恢复，确定要继续吗？"
+        variant="warning"
+        mode="confirm-cancel"
+        confirmLabel="删除"
+        cancelLabel="取消"
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }
