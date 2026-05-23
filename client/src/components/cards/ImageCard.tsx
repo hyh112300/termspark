@@ -41,27 +41,26 @@ export default function FlipCard({
             <div className="absolute -top-8 -left-8 w-28 h-28 rounded-full bg-washi-pink blur-2xl opacity-50" />
             <div className="absolute -bottom-10 -right-6 w-32 h-32 rounded-full bg-washi-blue blur-2xl opacity-50" />
             <div className="absolute top-1/2 right-1/3 w-20 h-20 rounded-full bg-washi-yellow blur-2xl opacity-40" />
-            <div className="relative flex items-center justify-between mb-3">
-              <div>
-                <p className="font-hand text-2xl leading-none text-foreground">术语 · {image.terms.length}</p>
-                <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">AI extracted</p>
-              </div>
-              <div className="flex items-center gap-1">
-                <button onClick={(e) => { e.stopPropagation(); onRegenerate(image.id); }} disabled={regenerating}
-                  className="w-8 h-8 rounded-full bg-background/60 hover:bg-secondary text-muted-foreground flex items-center justify-center transition-colors disabled:opacity-50"
-                  title="重新生成">
-                  <RotateCw className={`w-3.5 h-3.5 ${regenerating ? "animate-spin" : ""}`} />
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); onPreview(imgSrc); }}
-                  className="w-8 h-8 rounded-full bg-background/60 hover:bg-secondary text-muted-foreground flex items-center justify-center transition-colors"
-                  title="预览大图">
-                  <Eye className="w-3.5 h-3.5" />
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); if (confirm("删除这条灵感？")) onDelete(image.id); }}
-                  className="w-8 h-8 rounded-full bg-background/60 hover:bg-destructive hover:text-destructive-foreground text-muted-foreground flex items-center justify-center transition-colors">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
+            <div className="relative flex items-center justify-end gap-1.5 mb-1">
+              <button onClick={(e) => { e.stopPropagation(); onRegenerate(image.id); }} disabled={regenerating}
+                className="w-6 h-6 rounded-full bg-[var(--washi-blue)]/70 hover:bg-[var(--washi-blue)] text-white flex items-center justify-center transition-colors disabled:opacity-50"
+                title="重新生成">
+                <RotateCw className={`w-3 h-3 ${regenerating ? "animate-spin" : ""}`} />
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); onPreview(imgSrc); }}
+                className="w-6 h-6 rounded-full bg-[var(--washi-yellow)]/70 hover:bg-[var(--washi-yellow)] text-white flex items-center justify-center transition-colors"
+                title="预览大图">
+                <Eye className="w-3 h-3" />
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); if (confirm("删除这条灵感？")) onDelete(image.id); }}
+                className="w-6 h-6 rounded-full bg-destructive/70 hover:bg-destructive text-white flex items-center justify-center transition-colors"
+                title="删除">
+                <Trash2 className="w-2.5 h-2.5" />
+              </button>
+            </div>
+            <div className="relative mb-3">
+              <p className="font-hand text-2xl leading-none text-foreground">术语 · {image.terms.length}</p>
+              <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">AI extracted</p>
             </div>
             <div className="relative flex-1 overflow-y-auto flex flex-wrap gap-1.5 content-start pr-1">
               {image.terms.length === 0 && <p className="text-xs text-muted-foreground font-hand text-lg">还没解析出术语～</p>}

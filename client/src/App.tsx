@@ -127,7 +127,7 @@ function AppInner() {
         onToday={scrollToToday}
       />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-32 relative">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 relative">
         {/* Hero */}
         <div className="mb-10 text-center relative">
           <div
