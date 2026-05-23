@@ -56,12 +56,10 @@ function AppInner() {
     localStorage.setItem("termspark-theme", isDark ? "dark" : "light");
   }, [isDark]);
 
-  // Hide FAB when at bottom
+  // Show FAB after scrolling down
   useEffect(() => {
     const handleScroll = () => {
-      const scrollBottom = window.innerHeight + window.scrollY;
-      const docHeight = document.documentElement.scrollHeight;
-      setFabVisible(scrollBottom < docHeight - 200);
+      setFabVisible(window.scrollY > 400);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -203,7 +201,7 @@ function AppInner() {
       {/* Floating action button */}
       <FloatingActionButton
         visible={fabVisible}
-        onClick={scrollToToday}
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       />
 
       {/* Toast */}

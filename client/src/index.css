@@ -287,6 +287,59 @@ body {
   box-shadow: 0 4px 24px oklch(0 0 0 / 0.08);
 }
 
+/* FAB — expandable Back to Top */
+.fab-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 30;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: width 0.3s ease, border-radius 0.3s ease, background-color 0.3s ease;
+  overflow: hidden;
+  background-color: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 2px 16px oklch(0 0 0 / 0.12), 0 0 0 4px oklch(from var(--color-primary) l c h / 0.15);
+}
+.fab-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+.fab-button::before {
+  position: absolute;
+  bottom: -20px;
+  content: "Back to Top";
+  color: white;
+  font-size: 0;
+  white-space: nowrap;
+  transition: font-size 0.3s ease, bottom 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+.fab-button:hover {
+  width: 148px;
+  border-radius: 50px;
+  background-color: var(--primary);
+  color: white;
+  box-shadow: 0 4px 24px oklch(from var(--color-primary) l c h / 0.45);
+}
+.fab-button:hover .fab-icon {
+  transform: translateY(-200%);
+}
+.fab-button:hover::before {
+  font-size: 13px;
+  opacity: 1;
+  bottom: unset;
+}
+
 /* Coffee cup loading animation */
 @keyframes cup-expand {
   0% { width: 25px; transform: translateX(0); }
