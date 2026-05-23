@@ -81,7 +81,7 @@ export default function SearchPanel({ open, onClose, onResultClick }: SearchPane
               {/* Search input */}
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[var(--text-tertiary)]" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground" />
                   <input
                     ref={inputRef}
                     type="text"
@@ -89,12 +89,12 @@ export default function SearchPanel({ open, onClose, onResultClick }: SearchPane
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     placeholder="搜索术语..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[var(--bg-base)] border border-[var(--border)] text-[15px] outline-none focus:border-[var(--accent)] transition-colors placeholder:text-[var(--text-tertiary)]"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background border border-border text-[15px] outline-none focus:border-primary transition-colors placeholder:text-muted-foreground"
                   />
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-colors"
+                  className="p-2 rounded-full hover:bg-secondary text-muted-foreground transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -103,12 +103,12 @@ export default function SearchPanel({ open, onClose, onResultClick }: SearchPane
               {/* Results */}
               {searching && (
                 <div className="flex justify-center py-8">
-                  <div className="w-5 h-5 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin" />
+                  <div className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
                 </div>
               )}
 
               {!searching && query && (
-                <div className="text-sm text-[var(--text-secondary)] mb-3">
+                <div className="text-sm text-muted-foreground mb-3">
                   找到 {total} 个匹配结果
                 </div>
               )}
@@ -121,7 +121,7 @@ export default function SearchPanel({ open, onClose, onResultClick }: SearchPane
                       onClick={() => onResultClick(img)}
                       className="group text-left"
                     >
-                      <div className="aspect-4/3 rounded-lg overflow-hidden bg-[var(--bg-base)] mb-1.5">
+                      <div className="aspect-4/3 rounded-lg overflow-hidden bg-muted mb-1.5">
                         <img
                           src={`/uploads/${img.filename}`}
                           alt={img.originalName}
@@ -131,7 +131,7 @@ export default function SearchPanel({ open, onClose, onResultClick }: SearchPane
                       </div>
                       <div className="flex flex-wrap gap-1">
                         {img.terms.slice(0, 2).map(t => (
-                          <span key={t.id} className="text-[11px] text-[var(--tag-text)] bg-[var(--tag-bg)] px-1.5 py-0.5 rounded-full truncate max-w-full">
+                          <span key={t.id} className="text-[11px] text-foreground bg-secondary px-1.5 py-0.5 rounded-full truncate max-w-full">
                             {t.term}
                           </span>
                         ))}
@@ -142,7 +142,7 @@ export default function SearchPanel({ open, onClose, onResultClick }: SearchPane
               )}
 
               {!searching && query && results.length === 0 && (
-                <div className="text-center py-8 text-[var(--text-tertiary)] text-sm">
+                <div className="text-center py-8 text-muted-foreground text-sm">
                   没有找到匹配结果
                 </div>
               )}

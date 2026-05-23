@@ -9,7 +9,7 @@ import FloatingActionButton from "@/components/layout/FloatingActionButton";
 import ImageUploader from "@/components/cards/ImageUploader";
 import { ImagePreview } from "@/components/layout/ImagePreview";
 import { useTimeline } from "@/hooks/useTimeline";
-import { getTodayStr } from "@/lib/utils";
+import { dateFromWeekStart } from "@/lib/utils";
 import { GlobalLoadingProvider, useGlobalLoading } from "@/components/ui/LoadingOverlay";
 import type { ImageRecord } from "@/types";
 
@@ -67,9 +67,10 @@ function AppInner() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleSearchResultClick = useCallback((_image: ImageRecord) => {
+  const handleSearchResultClick = useCallback((image: ImageRecord) => {
     setSearchOpen(false);
-    const el = document.getElementById(`day-${getTodayStr()}`);
+    const date = dateFromWeekStart(image.weekStart, image.dayOfWeek);
+    const el = document.getElementById(`day-${date}`);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -136,7 +137,7 @@ function AppInner() {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 relative">
         {/* Hero */}
-        <div className="mb-10 text-center relative">
+        {/* <div className="mb-10 text-center relative">
           <div
             className="washi-tape hidden sm:block"
             style={{
@@ -151,7 +152,7 @@ function AppInner() {
           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
             粘贴一张设计截图，AI 自动提取设计术语关键词
           </p>
-        </div>
+        </div> */}
 
         {/* Upload */}
         <div className="mb-8">

@@ -267,6 +267,26 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
+/* Search panel — fixed at top below header */
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: oklch(0 0 0 / 0.3);
+  backdrop-filter: blur(4px);
+}
+.search-panel {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: 16px 16px 24px;
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 24px oklch(0 0 0 / 0.08);
+}
+
 /* Coffee cup loading animation */
 @keyframes cup-expand {
   0% { width: 25px; transform: translateX(0); }
