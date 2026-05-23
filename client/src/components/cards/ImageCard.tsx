@@ -1,13 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Trash2, Check, RotateCw, Eye } from "lucide-react";
 import type { ImageRecord } from "@/types";
-
-const blurCircles = [
-  { size: 100, x: -10, y: -15, color: "var(--washi-pink)" },
-  { size: 70, x: 55, y: 30, color: "var(--washi-blue)" },
-  { size: 50, x: 20, y: 55, color: "var(--washi-green)" },
-  { size: 80, x: 65, y: -5, color: "var(--washi-yellow)" },
-];
 
 interface FlipCardProps {
   image: ImageRecord;
@@ -28,11 +21,6 @@ export default function FlipCard({
     try { await navigator.clipboard.writeText(t); setCopied(t); setTimeout(() => setCopied(null), 1100); } catch {}
   };
 
-  const circleOffsets = useMemo(
-    () => blurCircles.map((c) => ({ ...c, x: c.x + ((image.id * 7) % 25), y: c.y + ((image.id * 13) % 25) })),
-    [image.id],
-  );
-
   const imgSrc = `/uploads/${image.filename}`;
 
   return (
@@ -46,16 +34,6 @@ export default function FlipCard({
           <div className="absolute bottom-2 left-2 right-2">
             <div className="px-2 py-1 rounded-md bg-white/85 text-ink text-[10px] font-medium truncate max-w-[70%] backdrop-blur-sm">{image.originalName}</div>
           </div>
-          <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-            <button onClick={(e) => { e.stopPropagation(); onRegenerate(image.id); }} disabled={regenerating}
-              className="w-10 h-10 rounded-full bg-white/95 text-ink flex items-center justify-center shadow-lg hover:scale-110 transition-transform disabled:opacity-50">
-              <RotateCw className={`w-4 h-4 ${regenerating ? "animate-spin" : ""}`} />
-            </button>
-            <button onClick={(e) => { e.stopPropagation(); onPreview(imgSrc); }}
-              className="w-10 h-10 rounded-full bg-white/95 text-ink flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-              <Eye className="w-4 h-4" />
-            </button>
-          </div>
         </div>
         {/* Back */}
         <div className="flip-face flip-back conic-glow">
@@ -68,10 +46,22 @@ export default function FlipCard({
                 <p className="font-hand text-2xl leading-none text-foreground">术语 · {image.terms.length}</p>
                 <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">AI extracted</p>
               </div>
-              <button onClick={(e) => { e.stopPropagation(); if (confirm("删除这条灵感？")) onDelete(image.id); }}
-                className="w-8 h-8 rounded-full bg-background/60 hover:bg-destructive hover:text-destructive-foreground text-muted-foreground flex items-center justify-center transition-colors">
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button onClick={(e) => { e.stopPropagation(); onRegenerate(image.id); }} disabled={regenerating}
+                  className="w-8 h-8 rounded-full bg-background/60 hover:bg-secondary text-muted-foreground flex items-center justify-center transition-colors disabled:opacity-50"
+                  title="重新生成">
+                  <RotateCw className={`w-3.5 h-3.5 ${regenerating ? "animate-spin" : ""}`} />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); onPreview(imgSrc); }}
+                  className="w-8 h-8 rounded-full bg-background/60 hover:bg-secondary text-muted-foreground flex items-center justify-center transition-colors"
+                  title="预览大图">
+                  <Eye className="w-3.5 h-3.5" />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); if (confirm("删除这条灵感？")) onDelete(image.id); }}
+                  className="w-8 h-8 rounded-full bg-background/60 hover:bg-destructive hover:text-destructive-foreground text-muted-foreground flex items-center justify-center transition-colors">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
             <div className="relative flex-1 overflow-y-auto flex flex-wrap gap-1.5 content-start pr-1">
               {image.terms.length === 0 && <p className="text-xs text-muted-foreground font-hand text-lg">还没解析出术语～</p>}
