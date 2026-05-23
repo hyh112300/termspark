@@ -15,7 +15,9 @@ interface DaySectionProps {
   onDeleteImage: (id: number) => void;
   onDeleteTerm: (termId: number) => void;
   onRegenerate: (imageId: number) => void;
+  onPreview: (url: string) => void;
   uploading: boolean;
+  regeneratingId: number | null;
 }
 
 export default function DaySection({
@@ -28,7 +30,9 @@ export default function DaySection({
   onDeleteImage,
   onDeleteTerm,
   onRegenerate,
+  onPreview,
   uploading,
+  regeneratingId,
 }: DaySectionProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -79,6 +83,8 @@ export default function DaySection({
                         onDelete={onDeleteImage}
                         onDeleteTerm={onDeleteTerm}
                         onRegenerate={onRegenerate}
+                        onPreview={onPreview}
+                        regenerating={regeneratingId === img.id}
                       />
                     ))}
                   </div>

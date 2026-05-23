@@ -213,10 +213,12 @@ export function useTimeline() {
   // Delete image
   const deleteImage = useCallback(async (id: number) => {
     await apiFetch(`/images/${id}`, { method: 'DELETE' });
-    setDays(prev => prev.map(day => ({
-      ...day,
-      images: day.images.filter(img => img.id !== id),
-    })));
+    setDays(prev => prev
+      .map(day => ({
+        ...day,
+        images: day.images.filter(img => img.id !== id),
+      }))
+      .filter(day => day.images.length > 0 || day.isToday));
   }, []);
 
   // Delete term
