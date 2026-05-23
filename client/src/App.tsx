@@ -9,6 +9,7 @@ import FloatingActionButton from "@/components/layout/FloatingActionButton";
 import { ImagePreview } from "@/components/layout/ImagePreview";
 import { useTimeline } from "@/hooks/useTimeline";
 import { getTodayStr } from "@/lib/utils";
+import { GlobalLoadingProvider, useGlobalLoading } from "@/components/ui/LoadingOverlay";
 import type { ImageRecord } from "@/types";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,14 @@ function AppInner() {
     deleteTerm,
     regenerateTerms,
   } = useTimeline();
+
+  const { show, hide } = useGlobalLoading();
+  const isUploading = Object.values(uploadingStates).some(Boolean);
+
+  useEffect(() => {
+    if (regenId !== null || isUploading) show();
+    else hide();
+  }, [regenId, isUploading, show, hide]);
 
   // Toggle dark mode
   useEffect(() => {
@@ -219,7 +228,9 @@ function AppInner() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppInner />
+      <GlobalLoadingProvider>
+        <AppInner />
+      </GlobalLoadingProvider>
     </QueryClientProvider>
   );
 }
