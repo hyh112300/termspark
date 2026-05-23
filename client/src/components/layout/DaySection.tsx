@@ -97,7 +97,7 @@ export default function DaySection({
                 {/* Upload — only on today */}
                 {isToday && (
                   <div className="mb-4">
-                    <ImageUploader onUpload={onUpload} uploading={uploading} />
+                    <ImageUploader onFiles={(files) => files.forEach(f => onUpload(f))} uploading={uploading} />
                   </div>
                 )}
               </motion.div>
