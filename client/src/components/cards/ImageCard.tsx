@@ -32,7 +32,7 @@ export default function FlipCard({
           <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
           <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/45 text-white text-[10px] backdrop-blur-md">{image.terms.length} 词</div>
           <div className="absolute bottom-2 left-2 right-2">
-            <div className="px-2 py-1 rounded-md bg-white/85 text-ink text-[10px] font-medium truncate max-w-[70%] backdrop-blur-sm">{image.originalName}</div>
+            <div className="px-2 py-1 rounded-md card-filename-label text-[10px] font-medium truncate max-w-[70%] backdrop-blur-sm">{image.originalName}</div>
           </div>
         </div>
         {/* Back */}
