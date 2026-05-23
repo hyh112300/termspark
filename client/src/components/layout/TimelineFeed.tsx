@@ -22,34 +22,13 @@ export default function TimelineFeed({
   const topSentryRef = useRef<HTMLDivElement>(null);
   const bottomSentryRef = useRef<HTMLDivElement>(null);
 
-  // Top sentry — load more past
+  // Top sentry — load more future
   useEffect(() => {
-    if (!hasMorePast || !topSentryRef.current) return;
+    if (!hasMoreFuture || !topSentryRef.current) return;
     const el = topSentryRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && hasMorePast && !loading && !loadingMore) {
-          onLoadMorePast();
-        }
-      },
-      { rootMargin: "200px" },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [hasMorePast, loading, loadingMore, onLoadMorePast]);
-
-  // Bottom sentry — load more future
-  useEffect(() => {
-    if (!hasMoreFuture || !bottomSentryRef.current) return;
-    const el = bottomSentryRef.current;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (
-          entry.isIntersecting &&
-          hasMoreFuture &&
-          !loading &&
-          !loadingMore
-        ) {
+        if (entry.isIntersecting && hasMoreFuture && !loading && !loadingMore) {
           onLoadMoreFuture();
         }
       },
@@ -59,10 +38,31 @@ export default function TimelineFeed({
     return () => observer.disconnect();
   }, [hasMoreFuture, loading, loadingMore, onLoadMoreFuture]);
 
+  // Bottom sentry — load more past
+  useEffect(() => {
+    if (!hasMorePast || !bottomSentryRef.current) return;
+    const el = bottomSentryRef.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (
+          entry.isIntersecting &&
+          hasMorePast &&
+          !loading &&
+          !loadingMore
+        ) {
+          onLoadMorePast();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMorePast, loading, loadingMore, onLoadMorePast]);
+
   return (
     <div className="relative">
-      {/* Top sentry — load past */}
-      {hasMorePast && <div ref={topSentryRef} className="h-4" />}
+      {/* Top sentry — load future */}
+      {hasMoreFuture && <div ref={topSentryRef} className="h-4" />}
 
       {loadingMore && (
         <div className="flex justify-center py-4">
@@ -77,8 +77,8 @@ export default function TimelineFeed({
         {children}
       </div>
 
-      {/* Bottom sentry — load future */}
-      {hasMoreFuture && <div ref={bottomSentryRef} className="h-4" />}
+      {/* Bottom sentry — load past */}
+      {hasMorePast && <div ref={bottomSentryRef} className="h-4" />}
 
       {/* End state */}
       {!loading &&

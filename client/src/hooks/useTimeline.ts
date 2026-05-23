@@ -24,7 +24,7 @@ function buildDayGroups(images: ImageRecord[], notesMap: Map<string, NoteRecord>
     map.get(date)!.push(img);
   });
 
-  const dates = Array.from(map.keys()).sort();
+  const dates = Array.from(map.keys()).sort((a, b) => b.localeCompare(a));
   return dates.map(date => {
     const d = new Date(date + 'T00:00:00');
     const dayOfWeek = (d.getDay() + 6) % 7;
@@ -89,7 +89,7 @@ export function useTimeline() {
           images: [],
           note: notesMap.get(todayStr) || null,
         });
-        groups.sort((a, b) => a.date.localeCompare(b.date));
+        groups.sort((a, b) => b.date.localeCompare(a.date));
       }
 
       setDays(groups);
@@ -131,7 +131,7 @@ export function useTimeline() {
       }
 
       const groups = buildDayGroups(data.items, notesMap);
-      setDays(prev => [...groups, ...prev]);
+      setDays(prev => [...prev, ...groups]);
       setHasMorePast(data.hasMore);
       pastCursorRef.current = data.hasMore ? data.nextCursor : null;
     } catch (err) {
@@ -165,7 +165,7 @@ export function useTimeline() {
       }
 
       const groups = buildDayGroups(data.items, notesMap);
-      setDays(prev => [...prev, ...groups]);
+      setDays(prev => [...groups, ...prev]);
       setHasMoreFuture(data.hasMore);
       futureCursorRef.current = data.hasMore ? data.nextCursor : null;
     } catch (err) {

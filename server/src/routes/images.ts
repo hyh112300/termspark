@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
 import { db, schema } from '../db/index.js';
-import { eq, and, sql, lte, gte, like, inArray } from 'drizzle-orm';
+import { eq, and, sql, lte, gte, like, inArray, desc } from 'drizzle-orm';
 import { generateTerms } from '../services/ai.js';
 import { config } from '../config.js';
 
@@ -139,7 +139,7 @@ router.get('/timeline', async (req: Request, res: Response) => {
       const imageRecords = await db.select()
         .from(schema.images)
         .where(lte(schema.images.weekStart, beforeWs))
-        .orderBy(schema.images.weekStart, schema.images.createdAt)
+        .orderBy(desc(schema.images.weekStart), desc(schema.images.createdAt))
         .limit(limit + 1);
 
       const hasMore = imageRecords.length > limit;
@@ -158,13 +158,13 @@ router.get('/timeline', async (req: Request, res: Response) => {
       const imageRecords = await db.select()
         .from(schema.images)
         .where(gte(schema.images.weekStart, afterWs))
-        .orderBy(schema.images.weekStart, schema.images.createdAt)
+        .orderBy(desc(schema.images.weekStart), desc(schema.images.createdAt))
         .limit(limit + 1);
 
       const hasMore = imageRecords.length > limit;
       const items = await attachTerms(imageRecords.slice(0, limit));
       const nextCursor = items.length > 0
-        ? items[items.length - 1].weekStart
+        ? items[0].weekStart
         : null;
 
       res.json({ items, hasMore, nextCursor });
@@ -179,14 +179,14 @@ router.get('/timeline', async (req: Request, res: Response) => {
     const pastRecords = await db.select()
       .from(schema.images)
       .where(lte(schema.images.weekStart, centerWs))
-      .orderBy(schema.images.weekStart, schema.images.createdAt)
+      .orderBy(desc(schema.images.weekStart), desc(schema.images.createdAt))
       .limit(limit + 1);
 
     // Load future (after centerWs)
     const futureRecords = await db.select()
       .from(schema.images)
       .where(gte(schema.images.weekStart, centerWs))
-      .orderBy(schema.images.weekStart, schema.images.createdAt)
+      .orderBy(desc(schema.images.weekStart), desc(schema.images.createdAt))
       .limit(limit + 1);
 
     // Combine: past + center + future, deduplicate
@@ -201,10 +201,10 @@ router.get('/timeline', async (req: Request, res: Response) => {
     const hasMoreFuture = futureRecords.length > limit;
     const items = await attachTerms(combined);
     const pastCursor = pastRecords.length > 0
-      ? pastRecords[0].weekStart
+      ? pastRecords[pastRecords.length - 1].weekStart
       : null;
     const futureCursor = futureRecords.length > 0
-      ? futureRecords[futureRecords.length - 1].weekStart
+      ? futureRecords[0].weekStart
       : null;
 
     res.json({

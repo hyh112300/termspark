@@ -6,6 +6,7 @@ import TimelineFeed from "@/components/layout/TimelineFeed";
 import DaySection from "@/components/layout/DaySection";
 import SearchPanel from "@/components/layout/SearchPanel";
 import FloatingActionButton from "@/components/layout/FloatingActionButton";
+import ImageUploader from "@/components/cards/ImageUploader";
 import { ImagePreview } from "@/components/layout/ImagePreview";
 import { useTimeline } from "@/hooks/useTimeline";
 import { getTodayStr } from "@/lib/utils";
@@ -24,9 +25,7 @@ function AppInner() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [fabVisible, setFabVisible] = useState(true);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [uploadingStates, setUploadingStates] = useState<
-    Record<string, boolean>
-  >({});
+  const [isUploading, setIsUploading] = useState(false);
   const [regenId, setRegenId] = useState<number | null>(null);
 
   const {
@@ -45,7 +44,6 @@ function AppInner() {
   } = useTimeline();
 
   const { show, hide } = useGlobalLoading();
-  const isUploading = Object.values(uploadingStates).some(Boolean);
 
   useEffect(() => {
     if (regenId !== null || isUploading) show();
@@ -78,15 +76,15 @@ function AppInner() {
   }, []);
 
   const handleUpload = useCallback(
-    async (date: string, file: File) => {
-      setUploadingStates((prev) => ({ ...prev, [date]: true }));
+    async (file: File) => {
+      setIsUploading(true);
       try {
         await uploadImage(file);
         toast.success("已收藏 ✿");
       } catch (err: any) {
         toast.error(err?.message || "上传失败");
       } finally {
-        setUploadingStates((prev) => ({ ...prev, [date]: false }));
+        setIsUploading(false);
       }
     },
     [uploadImage],
@@ -155,6 +153,14 @@ function AppInner() {
           </p>
         </div>
 
+        {/* Upload */}
+        <div className="mb-8">
+          <ImageUploader
+            onFiles={(files) => files.forEach(f => handleUpload(f))}
+            uploading={isUploading}
+          />
+        </div>
+
         {/* Timeline */}
         <TimelineFeed
           loading={loading}
@@ -172,12 +178,10 @@ function AppInner() {
                 displayDate={day.displayDate}
                 isToday={day.isToday}
                 images={day.images}
-                onUpload={(file) => handleUpload(day.date, file)}
                 onDeleteImage={handleDeleteImage}
                 onDeleteTerm={handleDeleteTerm}
                 onRegenerate={handleRegenerate}
                 onPreview={setPreviewUrl}
-                uploading={!!uploadingStates[day.date]}
                 regeneratingId={regenId}
               />
             </div>

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { ImageRecord } from '@/types';
 import ImageCard from '@/components/cards/ImageCard';
-import ImageUploader from '@/components/cards/ImageUploader';
 import DateMarker from './DateMarker';
 
 interface DaySectionProps {
@@ -11,12 +10,10 @@ interface DaySectionProps {
   displayDate: string;
   isToday: boolean;
   images: ImageRecord[];
-  onUpload: (file: File) => Promise<void>;
   onDeleteImage: (id: number) => void;
   onDeleteTerm: (termId: number) => void;
   onRegenerate: (imageId: number) => void;
   onPreview: (url: string) => void;
-  uploading: boolean;
   regeneratingId: number | null;
 }
 
@@ -26,12 +23,10 @@ export default function DaySection({
   displayDate,
   isToday,
   images,
-  onUpload,
   onDeleteImage,
   onDeleteTerm,
   onRegenerate,
   onPreview,
-  uploading,
   regeneratingId,
 }: DaySectionProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -91,13 +86,6 @@ export default function DaySection({
                 ) : (
                   <div className="text-center py-6 text-[var(--text-tertiary)] text-sm">
                     今天还没有记录 ✨
-                  </div>
-                )}
-
-                {/* Upload — only on today */}
-                {isToday && (
-                  <div className="mb-4">
-                    <ImageUploader onFiles={(files) => files.forEach(f => onUpload(f))} uploading={uploading} />
                   </div>
                 )}
               </motion.div>
