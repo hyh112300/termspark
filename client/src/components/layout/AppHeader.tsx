@@ -25,8 +25,8 @@ export default function AppHeader({
           </div>
           <div className="leading-none">
             <h1 className="font-hand text-3xl text-foreground">TermSpark</h1>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-0.5">
-              design journal
+            <p className="text-[12px] uppercase tracking-[0.2em] text-muted-foreground mt-0.5">
+              让AI读懂设计：从像素到术语
             </p>
           </div>
         </div>
