@@ -1,4 +1,4 @@
-import { Search, Sun, Moon, ArrowUpCircle } from 'lucide-react';
+import { Search, Moon, Sun, ArrowUp, Sparkles } from "lucide-react";
 
 interface AppHeaderProps {
   isDark: boolean;
@@ -14,46 +14,48 @@ export default function AppHeader({
   onToday,
 }: AppHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 glass-l3">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-12 sm:h-14 flex items-center justify-between gap-2">
-        {/* Logo */}
-        <div className="flex items-center gap-2 min-w-0">
-          <h1 className="text-[17px] sm:text-xl font-bold tracking-tight select-none shrink-0 text-[var(--text-primary)]">
-            TermSpark
-          </h1>
-          <span className="hidden sm:block font-hand text-sm text-[var(--text-secondary)] border-l border-[var(--border)] pl-3 leading-none pt-0.5">
-            设计术语灵感剪切板
-          </span>
+    <header className="sticky top-0 z-40 backdrop-blur-xl bg-[color:var(--color-background)]/75 border-b border-border">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="relative w-9 h-9 rounded-xl bg-primary flex items-center justify-center rotate-[-6deg] shadow-md">
+            <Sparkles
+              className="w-5 h-5 text-primary-foreground"
+              strokeWidth={2.5}
+            />
+          </div>
+          <div className="leading-none">
+            <h1 className="font-hand text-3xl text-foreground">TermSpark</h1>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-0.5">
+              design journal
+            </p>
+          </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1">
-          {/* Search */}
-          <button
-            onClick={onSearch}
-            className="p-2 rounded-full hover:bg-[var(--bg-hover)] transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            aria-label="搜索"
-          >
-            <Search className="w-4.5 h-4.5" />
-          </button>
-
-          {/* Today */}
+        <div className="flex items-center gap-1.5">
           <button
             onClick={onToday}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium text-[var(--accent)] hover:bg-[var(--accent-bg)] transition-colors"
-            aria-label="回到今天"
+            className="hidden sm:flex items-center gap-1.5 px-3 h-9 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
-            <ArrowUpCircle className="w-4 h-4" />
-            <span className="hidden sm:inline">今天</span>
+            <ArrowUp className="w-3.5 h-3.5" />
+            今天
           </button>
-
-          {/* Dark mode toggle */}
+          <button
+            onClick={onSearch}
+            aria-label="搜索"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          >
+            <Search className="w-4 h-4" />
+          </button>
           <button
             onClick={onToggleDark}
-            className="p-2 rounded-full hover:bg-[var(--bg-hover)] transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            aria-label={isDark ? '切换亮色模式' : '切换暗色模式'}
+            aria-label="切换主题"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
-            {isDark ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
+            {isDark ? (
+              <Sun className="w-4 h-4" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
           </button>
         </div>
       </div>

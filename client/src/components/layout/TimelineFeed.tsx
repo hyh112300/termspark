@@ -1,4 +1,4 @@
-import { useRef, useEffect, type ReactNode } from 'react';
+import { useRef, useEffect, type ReactNode } from "react";
 
 interface TimelineFeedProps {
   children: ReactNode;
@@ -28,15 +28,15 @@ export default function TimelineFeed({
     const el = topSentryRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && hasMorePast && !loading) {
+        if (entry.isIntersecting && hasMorePast && !loading && !loadingMore) {
           onLoadMorePast();
         }
       },
-      { rootMargin: '200px' }
+      { rootMargin: "200px" },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasMorePast, loading, onLoadMorePast]);
+  }, [hasMorePast, loading, loadingMore, onLoadMorePast]);
 
   // Bottom sentry — load more future
   useEffect(() => {
@@ -44,51 +44,51 @@ export default function TimelineFeed({
     const el = bottomSentryRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && hasMoreFuture && !loading) {
+        if (
+          entry.isIntersecting &&
+          hasMoreFuture &&
+          !loading &&
+          !loadingMore
+        ) {
           onLoadMoreFuture();
         }
       },
-      { rootMargin: '200px' }
+      { rootMargin: "200px" },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasMoreFuture, loading, onLoadMoreFuture]);
+  }, [hasMoreFuture, loading, loadingMore, onLoadMoreFuture]);
 
   return (
-    <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <div className="relative">
       {/* Top sentry — load past */}
-      {hasMorePast && (
-        <div ref={topSentryRef} className="h-4" />
-      )}
-      {loading && hasMorePast && (
+      {hasMorePast && <div ref={topSentryRef} className="h-4" />}
+
+      {loadingMore && (
         <div className="flex justify-center py-4">
-          <div className="w-5 h-5 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin" />
+          <div className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
         </div>
       )}
 
       {/* Timeline content */}
       <div className="relative">
-        {/* Vertical timeline line */}
-        <div className="timeline-line hidden md:block" />
+        {/* Vertical timeline line (desktop) */}
+        <div className="hidden md:block timeline-line" />
         {children}
       </div>
 
       {/* Bottom sentry — load future */}
-      {hasMoreFuture && (
-        <div ref={bottomSentryRef} className="h-4" />
-      )}
-      {loading && hasMoreFuture && (
-        <div className="flex justify-center py-4">
-          <div className="w-5 h-5 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin" />
-        </div>
-      )}
+      {hasMoreFuture && <div ref={bottomSentryRef} className="h-4" />}
 
       {/* End state */}
-      {!hasMoreFuture && !hasMorePast && !loading && (
-        <div className="text-center py-8 text-[var(--text-tertiary)] text-sm font-medium">
-          ✨ 已加载全部记录
-        </div>
-      )}
+      {!loading &&
+        !hasMorePast &&
+        !hasMoreFuture &&
+        !loadingMore && (
+          <div className="text-center py-8 text-muted-foreground text-sm font-medium">
+            ✨ 已加载全部记录
+          </div>
+        )}
     </div>
   );
 }
