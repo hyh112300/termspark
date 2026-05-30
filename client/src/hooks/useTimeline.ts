@@ -1,14 +1,29 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { ImageRecord, NoteRecord, DayGroup, TimelineResponse, TimelinePageResponse } from '@/types';
 import { formatDate, getTodayStr, getDayName, formatDisplayDate, isToday, dateFromWeekStart } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 const API_BASE = '/api';
 
-async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
+async function apiFetch<T>(url: string, options?: RequestInit, token?: string | null): Promise<T> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${API_BASE}${url}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...options,
   });
+
+  // 如果收到 401，清除 token 并跳转登录
+  if (res.status === 401) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.error || `HTTP ${res.status}`);
@@ -41,6 +56,7 @@ function buildDayGroups(images: ImageRecord[], notesMap: Map<string, NoteRecord>
 }
 
 export function useTimeline() {
+  const { token, logout } = useAuth();
   const [days, setDays] = useState<DayGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -57,7 +73,9 @@ export function useTimeline() {
     setLoading(true);
     try {
       const data = await apiFetch<TimelineResponse>(
-        `/images/timeline?around=${getTodayStr()}&limit=14`
+        `/images/timeline?around=${getTodayStr()}&limit=14`,
+        undefined,
+        token
       );
       const notesMap = new Map<string, NoteRecord>();
 
@@ -69,7 +87,7 @@ export function useTimeline() {
 
       for (const date of dates) {
         try {
-          const note = await apiFetch<NoteRecord>(`/notes?date=${date}`);
+          const note = await apiFetch<NoteRecord>(`/notes?date=${date}`, undefined, token);
           if (note && note.content) notesMap.set(date, note);
         } catch { /* no note */ }
       }
@@ -102,7 +120,7 @@ export function useTimeline() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     loadInitial();
@@ -115,7 +133,9 @@ export function useTimeline() {
     setLoadingMore(true);
     try {
       const data = await apiFetch<TimelinePageResponse>(
-        `/images/timeline?before=${pastCursorRef.current}&limit=14`
+        `/images/timeline?before=${pastCursorRef.current}&limit=14`,
+        undefined,
+        token
       );
       const notesMap = new Map<string, NoteRecord>();
 
@@ -125,7 +145,7 @@ export function useTimeline() {
       });
       for (const date of dates) {
         try {
-          const note = await apiFetch<NoteRecord>(`/notes?date=${date}`);
+          const note = await apiFetch<NoteRecord>(`/notes?date=${date}`, undefined, token);
           if (note && note.content) notesMap.set(date, note);
         } catch { /* no note */ }
       }
@@ -140,7 +160,7 @@ export function useTimeline() {
       setLoadingMore(false);
       loadingRef.current = false;
     }
-  }, []);
+  }, [token]);
 
   // Load more future
   const loadMoreFuture = useCallback(async () => {
@@ -149,7 +169,9 @@ export function useTimeline() {
     setLoadingMore(true);
     try {
       const data = await apiFetch<TimelinePageResponse>(
-        `/images/timeline?after=${futureCursorRef.current}&limit=14`
+        `/images/timeline?after=${futureCursorRef.current}&limit=14`,
+        undefined,
+        token
       );
       const notesMap = new Map<string, NoteRecord>();
 
@@ -159,7 +181,7 @@ export function useTimeline() {
       });
       for (const date of dates) {
         try {
-          const note = await apiFetch<NoteRecord>(`/notes?date=${date}`);
+          const note = await apiFetch<NoteRecord>(`/notes?date=${date}`, undefined, token);
           if (note && note.content) notesMap.set(date, note);
         } catch { /* no note */ }
       }
@@ -174,7 +196,7 @@ export function useTimeline() {
       setLoadingMore(false);
       loadingRef.current = false;
     }
-  }, []);
+  }, [token]);
 
   // Scroll to today
   const scrollToToday = useCallback(() => {
@@ -196,10 +218,25 @@ export function useTimeline() {
     formData.append('image', file);
     formData.append('date', today);
 
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${API_BASE}/images`, {
       method: 'POST',
+      headers,
       body: formData,
     });
+
+    // 如果收到 401，清除 token 并跳转登录
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
       throw new Error(err.error || 'Upload failed');
@@ -208,22 +245,22 @@ export function useTimeline() {
     // Refresh to get updated data
     await refresh();
     return data;
-  }, [refresh]);
+  }, [refresh, token]);
 
   // Delete image
   const deleteImage = useCallback(async (id: number) => {
-    await apiFetch(`/images/${id}`, { method: 'DELETE' });
+    await apiFetch(`/images/${id}`, { method: 'DELETE' }, token);
     setDays(prev => prev
       .map(day => ({
         ...day,
         images: day.images.filter(img => img.id !== id),
       }))
       .filter(day => day.images.length > 0 || day.isToday));
-  }, []);
+  }, [token]);
 
   // Delete term
   const deleteTerm = useCallback(async (termId: number) => {
-    await apiFetch(`/terms/${termId}`, { method: 'DELETE' });
+    await apiFetch(`/terms/${termId}`, { method: 'DELETE' }, token);
     setDays(prev => prev.map(day => ({
       ...day,
       images: day.images.map(img => ({
@@ -231,18 +268,18 @@ export function useTimeline() {
         terms: img.terms.filter(t => t.id !== termId),
       })),
     })));
-  }, []);
+  }, [token]);
 
   // Regenerate terms
   const regenerateTerms = useCallback(async (imageId: number) => {
-    const data = await apiFetch<{ terms: any[] }>(`/images/${imageId}/regenerate`, { method: 'POST' });
+    const data = await apiFetch<{ terms: any[] }>(`/images/${imageId}/regenerate`, { method: 'POST' }, token);
     setDays(prev => prev.map(day => ({
       ...day,
       images: day.images.map(img =>
         img.id === imageId ? { ...img, terms: data.terms } : img
       ),
     })));
-  }, []);
+  }, [token]);
 
   // Save note
   const saveNote = useCallback(async (date: string, content: string) => {
@@ -251,7 +288,7 @@ export function useTimeline() {
       await apiFetch<NoteRecord>('/notes', {
         method: 'PUT',
         body: JSON.stringify({ date, content }),
-      });
+      }, token);
       setDays(prev => prev.map(day =>
         day.date === date
           ? { ...day, note: { date, content } as NoteRecord }
@@ -262,7 +299,7 @@ export function useTimeline() {
     } finally {
       setNoteSaving(false);
     }
-  }, []);
+  }, [token]);
 
   return {
     days,

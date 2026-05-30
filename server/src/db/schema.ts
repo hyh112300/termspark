@@ -2,6 +2,7 @@ import { pgTable, serial, text, integer, date, timestamp } from 'drizzle-orm/pg-
 
 export const images = pgTable('images', {
   id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   filename: text('filename').notNull(),
   originalName: text('original_name').notNull(),
   weekStart: date('week_start').notNull(),
@@ -18,7 +19,16 @@ export const terms = pgTable('terms', {
 
 export const notes = pgTable('notes', {
   id: serial('id').primaryKey(),
-  date: date('date').unique().notNull(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  date: date('date').notNull(),
   content: text('content').default('').notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  username: text('username').notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  role: text('role').notNull().default('user'), // 'admin' | 'user'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });

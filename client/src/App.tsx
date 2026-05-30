@@ -11,12 +11,18 @@ import { ImagePreview } from "@/components/layout/ImagePreview";
 import Dialog from "@/components/ui/Dialog";
 import { useTimeline } from "@/hooks/useTimeline";
 import { dateFromWeekStart } from "@/lib/utils";
-import { GlobalLoadingProvider, useGlobalLoading } from "@/components/ui/LoadingOverlay";
+import {
+  GlobalLoadingProvider,
+  useGlobalLoading,
+} from "@/components/ui/LoadingOverlay";
+import { useAuth } from "@/contexts/AuthContext";
+import LoginDialog from "@/components/auth/LoginPage";
 import type { ImageRecord } from "@/types";
 
 const queryClient = new QueryClient();
 
 function AppInner() {
+  const { isAdmin } = useAuth();
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== "undefined") {
       return window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -24,7 +30,7 @@ function AppInner() {
     return false;
   });
   const [searchOpen, setSearchOpen] = useState(false);
-  const [fabVisible, setFabVisible] = useState(true);
+  const [fabVisible, setFabVisible] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [regenId, setRegenId] = useState<number | null>(null);
@@ -158,12 +164,20 @@ function AppInner() {
         </div> */}
 
         {/* Upload */}
-        <div className="mb-8">
-          <ImageUploader
-            onFiles={(files) => files.forEach(f => handleUpload(f))}
-            uploading={isUploading}
-          />
-        </div>
+        {isAdmin ? (
+          <div className="mb-8">
+            <ImageUploader
+              onFiles={(files) => files.forEach((f) => handleUpload(f))}
+              uploading={isUploading}
+            />
+          </div>
+        ) : (
+          <div className="mb-8 text-center py-8 rounded-xl border border-dashed border-border bg-card/50">
+            <p className="text-sm text-muted-foreground font-hand">
+              图片上传功能暂未开放
+            </p>
+          </div>
+        )}
 
         {/* Timeline */}
         <TimelineFeed
@@ -209,20 +223,6 @@ function AppInner() {
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       />
 
-      {/* Toast */}
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          style: {
-            background: "var(--card)",
-            color: "var(--foreground)",
-            border: "1px solid var(--border)",
-            fontFamily: "var(--font-hand)",
-            fontSize: "1.1rem",
-          },
-        }}
-      />
-
       <SearchPanel
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
@@ -244,12 +244,49 @@ function AppInner() {
   );
 }
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-muted-foreground">加载中...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <div className="min-h-screen bg-background" />
+        <LoginDialog />
+      </>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <GlobalLoadingProvider>
-        <AppInner />
+        <ProtectedRoute>
+          <AppInner />
+        </ProtectedRoute>
       </GlobalLoadingProvider>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "var(--card)",
+            color: "var(--foreground)",
+            border: "1px solid var(--border)",
+            fontFamily: "var(--font-hand)",
+            fontSize: "1.1rem",
+          },
+        }}
+      />
     </QueryClientProvider>
   );
 }

@@ -8,6 +8,8 @@ import { db, schema } from '../db/index.js';
 import { eq, and, sql, lte, gte, like, inArray, desc } from 'drizzle-orm';
 import { generateTerms } from '../services/ai.js';
 import { config } from '../config.js';
+import { AuthRequest } from '../middleware/auth.js';
+import { adminOnly } from '../middleware/admin.js';
 
 const router = Router();
 
@@ -73,7 +75,7 @@ async function attachTerms(images: any[]): Promise<any[]> {
    Upload image & trigger AI
    Now accepts `date` instead of weekStart+dayOfWeek
    ════════════════════════════════════════════ */
-router.post('/', upload.single('image'), async (req: Request, res: Response) => {
+router.post('/', adminOnly as any, upload.single('image'), async (req: Request, res: Response) => {
   try {
     const file = req.file;
     if (!file) {
@@ -81,6 +83,7 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
       return;
     }
 
+    const { user } = req as AuthRequest;
     const { date: dateParam } = req.body;
     const dateStr = dateParam || new Date().toISOString().split('T')[0];
     const { weekStart, dayOfWeek } = getDateWeekStart(dateStr);
@@ -93,6 +96,7 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
     const imageBase64 = resized.toString('base64');
 
     const [record] = await db.insert(schema.images).values({
+      userId: user!.id,
       filename: file.filename,
       originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
       weekStart,
@@ -102,6 +106,7 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
     let terms: string[] = [];
     try {
       terms = await generateTerms(imageBase64);
+      console.log('AI terms generated:', terms.length, 'terms');
     } catch (aiErr) {
       console.error('AI generation failed:', aiErr);
     }
@@ -130,6 +135,7 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
    ════════════════════════════════════════════ */
 router.get('/timeline', async (req: Request, res: Response) => {
   try {
+    const { user } = req as AuthRequest;
     const { around, before, after, limit: limitStr } = req.query;
     const limit = Math.min(parseInt(limitStr as string) || 14, 56);
 
@@ -138,7 +144,7 @@ router.get('/timeline', async (req: Request, res: Response) => {
       const { weekStart: beforeWs } = getDateWeekStart(before);
       const imageRecords = await db.select()
         .from(schema.images)
-        .where(lte(schema.images.weekStart, beforeWs))
+        .where(and(eq(schema.images.userId, user!.id), lte(schema.images.weekStart, beforeWs)))
         .orderBy(desc(schema.images.weekStart), desc(schema.images.createdAt))
         .limit(limit + 1);
 
@@ -157,7 +163,7 @@ router.get('/timeline', async (req: Request, res: Response) => {
       const { weekStart: afterWs } = getDateWeekStart(after);
       const imageRecords = await db.select()
         .from(schema.images)
-        .where(gte(schema.images.weekStart, afterWs))
+        .where(and(eq(schema.images.userId, user!.id), gte(schema.images.weekStart, afterWs)))
         .orderBy(desc(schema.images.weekStart), desc(schema.images.createdAt))
         .limit(limit + 1);
 
@@ -178,14 +184,14 @@ router.get('/timeline', async (req: Request, res: Response) => {
     // Load past (before centerWs)
     const pastRecords = await db.select()
       .from(schema.images)
-      .where(lte(schema.images.weekStart, centerWs))
+      .where(and(eq(schema.images.userId, user!.id), lte(schema.images.weekStart, centerWs)))
       .orderBy(desc(schema.images.weekStart), desc(schema.images.createdAt))
       .limit(limit + 1);
 
     // Load future (after centerWs)
     const futureRecords = await db.select()
       .from(schema.images)
-      .where(gte(schema.images.weekStart, centerWs))
+      .where(and(eq(schema.images.userId, user!.id), gte(schema.images.weekStart, centerWs)))
       .orderBy(desc(schema.images.weekStart), desc(schema.images.createdAt))
       .limit(limit + 1);
 
@@ -225,6 +231,7 @@ router.get('/timeline', async (req: Request, res: Response) => {
    ════════════════════════════════════════════ */
 router.get('/search', async (req: Request, res: Response) => {
   try {
+    const { user } = req as AuthRequest;
     const { q, limit: limitStr } = req.query;
     const searchQuery = (q as string) || '';
     const limit = Math.min(parseInt(limitStr as string) || 20, 100);
@@ -234,10 +241,14 @@ router.get('/search', async (req: Request, res: Response) => {
       return;
     }
 
-    // Find image IDs that have matching terms
+    // Find image IDs that have matching terms (限当前用户)
     const matchingTermImages = await db.select({ imageId: schema.terms.imageId })
       .from(schema.terms)
-      .where(sql`${schema.terms.term} ILIKE ${'%' + searchQuery + '%'}`)
+      .innerJoin(schema.images, eq(schema.terms.imageId, schema.images.id))
+      .where(and(
+        sql`${schema.terms.term} ILIKE ${'%' + searchQuery + '%'}`,
+        eq(schema.images.userId, user!.id),
+      ))
       .groupBy(schema.terms.imageId)
       .limit(limit);
 
@@ -264,8 +275,11 @@ router.get('/search', async (req: Request, res: Response) => {
 // Delete image
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    const { user } = req as AuthRequest;
     const id = parseInt(req.params.id as string, 10);
-    const [record] = await db.select().from(schema.images).where(eq(schema.images.id, id));
+    const [record] = await db.select().from(schema.images).where(
+      and(eq(schema.images.id, id), eq(schema.images.userId, user!.id))
+    );
 
     if (record) {
       const filePath = path.join(config.uploadsDir, record.filename);
@@ -280,10 +294,13 @@ router.delete('/:id', async (req: Request, res: Response) => {
 });
 
 // Regenerate terms for an image
-router.post('/:id/regenerate', async (req: Request, res: Response) => {
+router.post('/:id/regenerate', adminOnly as any, async (req: Request, res: Response) => {
   try {
+    const { user } = req as AuthRequest;
     const id = parseInt(req.params.id as string, 10);
-    const [record] = await db.select().from(schema.images).where(eq(schema.images.id, id));
+    const [record] = await db.select().from(schema.images).where(
+      and(eq(schema.images.id, id), eq(schema.images.userId, user!.id))
+    );
 
     if (!record) {
       res.status(404).json({ error: 'Image not found' });

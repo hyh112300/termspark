@@ -15,14 +15,21 @@ export async function generateTerms(imageBase64: string): Promise<string[]> {
 
 生成 5-10 个中文术语：`;
 
-  const response = await fetch(`${config.omlxUrl}/chat/completions`, {
+  // 根据配置选择 AI 服务
+  const isOpencode = config.aiProvider === 'opencode';
+  const baseUrl = isOpencode ? config.opencodeBaseUrl : config.omlxUrl;
+  const apiKey = isOpencode ? config.opencodeApiKey : config.omlxApiKey;
+  const model = isOpencode ? config.opencodeModel : config.omlxModel;
+  const providerName = isOpencode ? 'OpenCode' : 'oMLX';
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${config.omlxApiKey}`,
+      'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: config.omlxModel,
+      model,
       messages: [
         {
           role: 'user',
@@ -42,7 +49,7 @@ export async function generateTerms(imageBase64: string): Promise<string[]> {
 
   if (!response.ok) {
     const errText = await response.text().catch(() => '');
-    throw new Error(`oMLX API error: ${response.status} ${response.statusText} - ${errText}`);
+    throw new Error(`${providerName} API error: ${response.status} ${response.statusText} - ${errText}`);
   }
 
   const data: OpenAIChatResponse = await response.json();
