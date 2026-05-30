@@ -2,6 +2,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ImageRecord, SearchResponse } from '@/types';
+import { apiFetch } from '@/lib/api';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface SearchPanelProps {
   open: boolean;
@@ -17,7 +19,7 @@ export default function SearchPanel({ open, onClose, onResultClick }: SearchPane
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedQuery = useDebounce(query, 300);
 
   useEffect(() => {
     if (open) {
@@ -38,8 +40,7 @@ export default function SearchPanel({ open, onClose, onResultClick }: SearchPane
     }
     setSearching(true);
     try {
-      const res = await fetch(`/api/images/search?q=${encodeURIComponent(q)}&limit=20`);
-      const data: SearchResponse = await res.json();
+      const data = await apiFetch<SearchResponse>(`/images/search?q=${encodeURIComponent(q)}&limit=20`);
       setResults(data.items);
       setTotal(data.total);
       setSelectedIndex(0);
@@ -50,12 +51,13 @@ export default function SearchPanel({ open, onClose, onResultClick }: SearchPane
     }
   }, []);
 
+  useEffect(() => {
+    doSearch(debouncedQuery);
+  }, [debouncedQuery, doSearch]);
+
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value;
-    setQuery(v);
-    clearTimeout(debounceRef.current ?? undefined);
-    debounceRef.current = setTimeout(() => doSearch(v), 250);
-  }, [doSearch]);
+    setQuery(e.target.value);
+  }, []);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
