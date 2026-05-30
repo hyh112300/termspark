@@ -22,7 +22,7 @@ import type { ImageRecord } from "@/types";
 const queryClient = new QueryClient();
 
 function AppInner() {
-  const { isAdmin } = useAuth();
+  // all authenticated users can use all features
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== "undefined") {
       return window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -164,20 +164,12 @@ function AppInner() {
         </div> */}
 
         {/* Upload */}
-        {isAdmin ? (
-          <div className="mb-8">
-            <ImageUploader
-              onFiles={(files) => files.forEach((f) => handleUpload(f))}
-              uploading={isUploading}
-            />
-          </div>
-        ) : (
-          <div className="mb-8 text-center py-8 rounded-xl border border-dashed border-border bg-card/50">
-            <p className="text-sm text-muted-foreground font-hand">
-              图片上传功能暂未开放
-            </p>
-          </div>
-        )}
+        <div className="mb-8">
+          <ImageUploader
+            onFiles={(files) => files.forEach((f) => handleUpload(f))}
+            uploading={isUploading}
+          />
+        </div>
 
         {/* Timeline */}
         <TimelineFeed

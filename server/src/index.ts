@@ -7,7 +7,6 @@ import termRoutes from './routes/terms.js';
 import noteRoutes from './routes/notes.js';
 import authRoutes from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
-import { adminOnly } from './middleware/admin.js';
 
 const app = express();
 

@@ -9,7 +9,6 @@ import { eq, and, sql, lte, gte, like, inArray, desc } from 'drizzle-orm';
 import { generateTerms } from '../services/ai.js';
 import { config } from '../config.js';
 import { AuthRequest } from '../middleware/auth.js';
-import { adminOnly } from '../middleware/admin.js';
 
 const router = Router();
 
@@ -75,7 +74,7 @@ async function attachTerms(images: any[]): Promise<any[]> {
    Upload image & trigger AI
    Now accepts `date` instead of weekStart+dayOfWeek
    ════════════════════════════════════════════ */
-router.post('/', adminOnly as any, upload.single('image'), async (req: Request, res: Response) => {
+router.post('/', upload.single('image'), async (req: Request, res: Response) => {
   try {
     const file = req.file;
     if (!file) {
@@ -294,7 +293,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
 });
 
 // Regenerate terms for an image
-router.post('/:id/regenerate', adminOnly as any, async (req: Request, res: Response) => {
+router.post('/:id/regenerate', async (req: Request, res: Response) => {
   try {
     const { user } = req as AuthRequest;
     const id = parseInt(req.params.id as string, 10);

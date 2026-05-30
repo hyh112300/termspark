@@ -100,7 +100,7 @@ export default function AppHeader({
                     <p className="text-sm font-medium text-foreground">
                       {user.username}
                     </p>
-                    <p className="text-xs text-muted-foreground">管理员</p>
+
                   </div>
                   <button
                     onClick={logout}
